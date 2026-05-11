@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { recordAuditEntry, type AuditContext } from "@/features/audit/audit-log";
 import { createPublicSlug, getNextEventStatuses, validateCreateEventInput, type CreateEventInput, type EventStatus } from "./event-model";
 import type { EventRecord, EventStore, UpdateEventInput } from "./event-store";
 
@@ -22,7 +23,7 @@ export async function updateEventAction(store: EventStore, eventId: string, inpu
   return { ok: true, event };
 }
 
-export async function transitionEventStatusAction(store: EventStore, eventId: string, nextStatus: EventStatus): Promise<EventActionResult> {
+export async function transitionEventStatusAction(store: EventStore, eventId: string, nextStatus: EventStatus, audit: AuditContext = {}): Promise<EventActionResult> {
   const existing = await store.getEvent(eventId);
   if (!existing) return { ok: false, errors: [{ field: "eventId", message: "Event not found" }] };
   if (!getNextEventStatuses(existing.status).includes(nextStatus)) {
@@ -30,5 +31,17 @@ export async function transitionEventStatusAction(store: EventStore, eventId: st
   }
   const event = await store.updateStatus(eventId, nextStatus);
   if (!event) return { ok: false, errors: [{ field: "eventId", message: "Event not found" }] };
+
+  if (nextStatus === "completed" || (existing.status === "completed" && nextStatus === "live")) {
+    await recordAuditEntry(audit.store, {
+      actionType: nextStatus === "completed" ? "event_completed" : "event_reopened",
+      actorId: audit.actorId ?? null,
+      eventId: event.id,
+      entityKind: "event",
+      entityId: event.id,
+      summary: nextStatus === "completed" ? "Event completed" : "Event reopened",
+    });
+  }
+
   return { ok: true, event };
 }

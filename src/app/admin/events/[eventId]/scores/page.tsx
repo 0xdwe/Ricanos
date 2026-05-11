@@ -1,3 +1,4 @@
+import { createDrizzleAuditLogStore } from "@/features/audit/drizzle-audit-log-store";
 import { scoreMatchAction, transitionMatchStatusAction } from "@/features/matches/match-actions";
 import type { MatchStatus } from "@/features/matches/match-model";
 import { createDrizzleMatchStore } from "@/features/matches/drizzle-match-store";
@@ -13,6 +14,7 @@ async function saveMatchUpdate(formData: FormData) {
   "use server";
 
   const store = createDrizzleMatchStore();
+  const auditStore = createDrizzleAuditLogStore();
   const matchId = String(formData.get("matchId") ?? "").trim();
   const status = String(formData.get("status") ?? "scheduled") as MatchStatus;
   const teamOneScore = parseOptionalScore(formData.get("teamOneScore"));
@@ -21,11 +23,11 @@ async function saveMatchUpdate(formData: FormData) {
   const abandonedCountsTowardLeaderboard = formData.get("abandonedCountsTowardLeaderboard") === "on";
 
   if (status === "completed" && teamOneScore !== null && teamTwoScore !== null) {
-    await scoreMatchAction(store, matchId, { teamOneScore, teamTwoScore, overrideConfirmed });
+    await scoreMatchAction(store, matchId, { teamOneScore, teamTwoScore, overrideConfirmed }, { store: auditStore, actorId: null });
     return;
   }
 
-  await transitionMatchStatusAction(store, matchId, status, { abandonedCountsTowardLeaderboard });
+  await transitionMatchStatusAction(store, matchId, status, { abandonedCountsTowardLeaderboard }, { store: auditStore, actorId: null });
 }
 
 export default async function EventScoresPage({ params }: EventScoresPageProps) {

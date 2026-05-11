@@ -4,6 +4,17 @@ export const eventStatus = pgEnum("event_status", ["draft", "ready", "live", "co
 export const eventFormat = pgEnum("event_format", ["americano", "mexicano"]);
 export const pairingMode = pgEnum("pairing_mode", ["individual", "fixed_team"]);
 export const matchStatus = pgEnum("match_status", ["scheduled", "in_progress", "completed", "abandoned"]);
+export const auditActionType = pgEnum("audit_action_type", [
+  "score_updated",
+  "match_status_updated",
+  "match_players_swapped",
+  "schedule_generated",
+  "schedule_regenerated",
+  "event_completed",
+  "event_reopened",
+  "risky_override_confirmed",
+]);
+export const auditEntityKind = pgEnum("audit_entity_kind", ["event", "match", "round", "schedule"]);
 
 export const events = pgTable("events", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -86,4 +97,15 @@ export const matches = pgTable("matches", {
   scoreOverrideWarning: text("score_override_warning"),
   abandonedCountsTowardLeaderboard: boolean("abandoned_counts_toward_leaderboard").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const auditLog = pgTable("audit_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  actionType: auditActionType("action_type").notNull(),
+  actorId: text("actor_id"),
+  eventId: uuid("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  entityKind: auditEntityKind("entity_kind").notNull(),
+  entityId: text("entity_id").notNull(),
+  summary: text("summary").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

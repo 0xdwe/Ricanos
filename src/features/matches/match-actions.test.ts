@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createInMemoryAuditLogStore } from "@/features/audit/in-memory-audit-log-store";
 import { createInMemoryMatchStore } from "./in-memory-match-store";
 import { scoreMatchAction, transitionMatchStatusAction } from "./match-actions";
 import type { MatchRecord } from "./match-model";
@@ -48,6 +49,22 @@ describe("match actions", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.match).toMatchObject({ status: "abandoned", abandonedCountsTowardLeaderboard: false });
+  });
+
+  it("records audit entries for score updates, overrides, and status changes when an audit store is provided", async () => {
+    const store = createInMemoryMatchStore([match]);
+    const auditStore = createInMemoryAuditLogStore();
+
+    await scoreMatchAction(store, "match_1", { teamOneScore: 15, teamTwoScore: 8, overrideConfirmed: true }, { store: auditStore, actorId: "admin_1" });
+    await transitionMatchStatusAction(store, "match_1", "in_progress", {}, { store: auditStore, actorId: "admin_1" });
+
+    await expect(auditStore.listRecent("event_1", 10)).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ actionType: "score_updated", actorId: "admin_1", entityId: "match_1" }),
+        expect.objectContaining({ actionType: "risky_override_confirmed", summary: "Score total 23 does not match target 24" }),
+        expect.objectContaining({ actionType: "match_status_updated", summary: "Match status updated from completed to in_progress" }),
+      ]),
+    );
   });
 
   it("returns readable errors when match is missing", async () => {
