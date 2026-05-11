@@ -46,3 +46,19 @@ export const eventPlayers = pgTable("event_players", {
   sortOrder: integer("sort_order").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const teams = pgTable("teams", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  eventId: uuid("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  displayName: text("display_name").notNull(),
+  sortOrder: integer("sort_order").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const teamPlayers = pgTable("team_players", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+  playerId: uuid("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+  sortOrder: integer("sort_order").notNull(),
+});
