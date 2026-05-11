@@ -30,3 +30,19 @@ export const courts = pgTable("courts", {
   name: text("name").notNull(),
   sortOrder: integer("sort_order").notNull(),
 });
+
+export const players = pgTable("players", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  displayName: text("display_name").notNull(),
+  normalizedName: text("normalized_name").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const eventPlayers = pgTable("event_players", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  eventId: uuid("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  playerId: uuid("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+  sortOrder: integer("sort_order").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
