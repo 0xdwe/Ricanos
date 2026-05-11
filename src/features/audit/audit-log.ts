@@ -37,5 +37,9 @@ export type AuditContext = {
 
 export async function recordAuditEntry(store: AuditLogStore | undefined, input: CreateAuditEntryInput): Promise<AuditEntry | null> {
   if (!store) return null;
-  return store.record(input);
+  try {
+    return await store.record(input);
+  } catch {
+    return null;
+  }
 }

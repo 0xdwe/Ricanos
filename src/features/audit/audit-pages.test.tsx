@@ -10,6 +10,6 @@ describe("recent activity page", () => {
     expect(screen.getByRole("heading", { name: "Recent activity" })).toBeInTheDocument();
     expect(screen.getByText("Event ID: event_1")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Audit log" })).toBeInTheDocument();
-    expect(screen.getByText("Risky override confirmed")).toBeInTheDocument();
+    expect(screen.getByText("No recent activity recorded yet.")).toBeInTheDocument();
   });
 });

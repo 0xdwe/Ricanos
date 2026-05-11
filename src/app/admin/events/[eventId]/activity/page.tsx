@@ -1,15 +1,23 @@
+import type { AuditEntry } from "@/features/audit/audit-log";
+import { createDrizzleAuditLogStore } from "@/features/audit/drizzle-audit-log-store";
+
 type EventActivityPageProps = { params: Promise<{ eventId: string }> };
 
-const activityExamples = [
-  "Scores updated",
-  "Match status changed",
-  "Risky override confirmed",
-  "Schedule generated or regenerated",
-  "Event completed or reopened",
-];
+async function loadRecentActivity(eventId: string): Promise<AuditEntry[]> {
+  try {
+    return await createDrizzleAuditLogStore().listRecent(eventId, 10);
+  } catch {
+    return [];
+  }
+}
+
+function formatCreatedAt(value: Date) {
+  return new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(value);
+}
 
 export default async function EventActivityPage({ params }: EventActivityPageProps) {
   const { eventId } = await params;
+  const entries = await loadRecentActivity(eventId);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6">
@@ -25,13 +33,18 @@ export default async function EventActivityPage({ params }: EventActivityPagePro
           <p className="text-sm text-slate-600">A lightweight panel for score, status, pairing, schedule, lifecycle, and override activity.</p>
         </div>
 
-        <ul className="mt-5 grid gap-3">
-          {activityExamples.map((summary) => (
-            <li key={summary} className="rounded-lg border border-slate-200 p-3 text-sm text-slate-700">
-              {summary}
-            </li>
-          ))}
-        </ul>
+        {entries.length === 0 ? (
+          <p className="mt-5 rounded-lg border border-slate-200 p-3 text-sm text-slate-600">No recent activity recorded yet.</p>
+        ) : (
+          <ul className="mt-5 grid gap-3">
+            {entries.map((entry) => (
+              <li key={entry.id} className="rounded-lg border border-slate-200 p-3 text-sm text-slate-700">
+                <div className="font-medium text-slate-900">{entry.summary}</div>
+                <div className="mt-1 text-xs text-slate-500">{entry.actionType} · {entry.entityKind}:{entry.entityId} · {formatCreatedAt(entry.createdAt)}</div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   );

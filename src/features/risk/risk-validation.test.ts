@@ -24,6 +24,17 @@ describe("risk validation", () => {
     expect(result.warnings).toContainEqual(expect.objectContaining({ code: "live_match_player_change" }));
   });
 
+  it("requires confirmation when live players swap teams", () => {
+    const result = validateRiskyAdminChanges({
+      eventStatus: "live",
+      originalMatches: [baseMatch],
+      matches: [{ ...baseMatch, teamOneParticipantIds: ["p1", "p3"], teamTwoParticipantIds: ["p2", "p4"] }],
+    });
+
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.warnings).toContainEqual(expect.objectContaining({ code: "live_match_player_change" }));
+  });
+
   it("warns about duplicate participants, wrong counts, court conflicts, fixed team violations, and score target mismatches", () => {
     const result = validateRiskyAdminChanges({
       pairingMode: "fixed_team",

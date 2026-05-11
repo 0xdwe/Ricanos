@@ -92,7 +92,7 @@ function isLiveStatus(status: MatchStatus) {
 }
 
 function participantsChanged(a: RiskMatch, b: RiskMatch) {
-  return stableKey([...a.teamOneParticipantIds, ...a.teamTwoParticipantIds]) !== stableKey([...b.teamOneParticipantIds, ...b.teamTwoParticipantIds]);
+  return stableKey(a.teamOneParticipantIds) !== stableKey(b.teamOneParticipantIds) || stableKey(a.teamTwoParticipantIds) !== stableKey(b.teamTwoParticipantIds);
 }
 
 function stableKey(values: string[]) {

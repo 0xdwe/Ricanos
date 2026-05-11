@@ -2,6 +2,7 @@ import { createDrizzleAuditLogStore } from "@/features/audit/drizzle-audit-log-s
 import { scoreMatchAction, transitionMatchStatusAction } from "@/features/matches/match-actions";
 import type { MatchStatus } from "@/features/matches/match-model";
 import { createDrizzleMatchStore } from "@/features/matches/drizzle-match-store";
+import { validateRiskyAdminChanges } from "@/features/risk/risk-validation";
 
 type EventScoresPageProps = { params: Promise<{ eventId: string }> };
 
@@ -21,6 +22,16 @@ async function saveMatchUpdate(formData: FormData) {
   const teamTwoScore = parseOptionalScore(formData.get("teamTwoScore"));
   const overrideConfirmed = formData.get("overrideConfirmed") === "on";
   const abandonedCountsTowardLeaderboard = formData.get("abandonedCountsTowardLeaderboard") === "on";
+
+  const existing = await store.getMatch(matchId);
+  if (existing && teamOneScore !== null && teamTwoScore !== null) {
+    const risk = validateRiskyAdminChanges({
+      matches: [{ ...existing, status, teamOneScore, teamTwoScore }],
+      originalMatches: [existing],
+      overrideConfirmed,
+    });
+    if (!risk.canSave) return;
+  }
 
   if (status === "completed" && teamOneScore !== null && teamTwoScore !== null) {
     await scoreMatchAction(store, matchId, { teamOneScore, teamTwoScore, overrideConfirmed }, { store: auditStore, actorId: null });
@@ -73,10 +84,14 @@ export default async function EventScoresPage({ params }: EventScoresPageProps) 
           </label>
         </div>
 
-        <label className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-medium text-amber-900">
-          <input className="mt-1" name="overrideConfirmed" type="checkbox" />
-          Override target total after confirmation
-        </label>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <div className="font-semibold">Risk warnings require confirmation</div>
+          <p className="mt-1">Score target mismatches and risky live edits are blocked until admin confirms override.</p>
+          <label className="mt-3 flex items-start gap-3 font-medium">
+            <input className="mt-1" name="overrideConfirmed" type="checkbox" />
+            Override target total after confirmation
+          </label>
+        </div>
 
         <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm font-medium text-slate-700">
           <input className="mt-1" name="abandonedCountsTowardLeaderboard" type="checkbox" />
