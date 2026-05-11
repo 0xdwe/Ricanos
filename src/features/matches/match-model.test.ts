@@ -39,6 +39,17 @@ describe("match score domain", () => {
     }
   });
 
+  it("rejects negative and decimal scores", () => {
+    expect(recordScore(baseMatch, { teamOneScore: -1, teamTwoScore: 25, overrideConfirmed: false })).toEqual({
+      ok: false,
+      errors: [{ field: "teamOneScore", message: "Team one score must be a non-negative whole number" }],
+    });
+    expect(recordScore(baseMatch, { teamOneScore: 12.5, teamTwoScore: 11.5, overrideConfirmed: false })).toEqual({
+      ok: false,
+      errors: [{ field: "teamOneScore", message: "Team one score must be a non-negative whole number" }],
+    });
+  });
+
   it("requires override confirmation before saving an invalid target total", () => {
     const blocked = recordScore(baseMatch, { teamOneScore: 14, teamTwoScore: 9, overrideConfirmed: false });
     expect(blocked).toEqual({ ok: false, errors: [{ field: "score", message: "Score total 23 does not match target 24" }] });
@@ -67,5 +78,20 @@ describe("match score domain", () => {
         },
       ]);
     }
+  });
+
+  it("maps completed and abandoned-not-counted matches for leaderboard engine", () => {
+    expect(buildLeaderboardMatches([{ ...baseMatch, status: "completed", teamOneScore: 14, teamTwoScore: 10 }])).toEqual([
+      {
+        status: "completed",
+        countsTowardLeaderboard: undefined,
+        teamOneParticipantIds: ["p1", "p4"],
+        teamTwoParticipantIds: ["p2", "p3"],
+        teamOneScore: 14,
+        teamTwoScore: 10,
+      },
+    ]);
+
+    expect(buildLeaderboardMatches([{ ...baseMatch, status: "abandoned", teamOneScore: 6, teamTwoScore: 4, abandonedCountsTowardLeaderboard: false }])[0].countsTowardLeaderboard).toBe(false);
   });
 });

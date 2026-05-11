@@ -1,5 +1,5 @@
 import type { MatchRecord } from "./match-model";
-import type { CreateMatchInput, CreateRoundInput, MatchStore, RoundRecord, UpdateMatchInput } from "./match-store";
+import type { CreateMatchInput, CreateRoundInput, MatchStore, RoundRecord, ScoreUpdateInput, StatusUpdateInput } from "./match-store";
 
 let nextId = 1;
 
@@ -20,7 +20,16 @@ export function createInMemoryMatchStore(initialMatches: MatchRecord[] = [], ini
       return round;
     },
     async createMatch(input: CreateMatchInput) {
-      const match = { id: id("match"), ...input, updatedAt: new Date("2026-01-01T00:00:00.000Z") };
+      const match: MatchRecord = {
+        id: id("match"),
+        ...input,
+        status: input.status ?? "scheduled",
+        teamOneScore: input.teamOneScore ?? null,
+        teamTwoScore: input.teamTwoScore ?? null,
+        scoreOverrideWarning: input.scoreOverrideWarning ?? null,
+        abandonedCountsTowardLeaderboard: input.abandonedCountsTowardLeaderboard ?? false,
+        updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+      };
       matches.set(match.id, match);
       return match;
     },
@@ -30,10 +39,17 @@ export function createInMemoryMatchStore(initialMatches: MatchRecord[] = [], ini
     async getMatch(matchId: string) {
       return matches.get(matchId) ?? null;
     },
-    async updateMatch(matchId: string, input: UpdateMatchInput) {
+    async updateScore(matchId: string, input: ScoreUpdateInput) {
       const existing = matches.get(matchId);
       if (!existing) return null;
-      const updated = { ...existing, ...input, updatedAt: input.updatedAt ?? new Date("2026-01-01T00:00:00.000Z") };
+      const updated = { ...existing, ...input, updatedAt: new Date("2026-01-01T00:00:00.000Z") };
+      matches.set(matchId, updated);
+      return updated;
+    },
+    async updateStatus(matchId: string, input: StatusUpdateInput) {
+      const existing = matches.get(matchId);
+      if (!existing) return null;
+      const updated = { ...existing, ...input, updatedAt: new Date("2026-01-01T00:00:00.000Z") };
       matches.set(matchId, updated);
       return updated;
     },

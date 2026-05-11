@@ -49,4 +49,16 @@ describe("match actions", () => {
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.match).toMatchObject({ status: "abandoned", abandonedCountsTowardLeaderboard: false });
   });
+
+  it("returns readable errors when match is missing", async () => {
+    const store = createInMemoryMatchStore([]);
+    await expect(scoreMatchAction(store, "missing", { teamOneScore: 12, teamTwoScore: 12, overrideConfirmed: false })).resolves.toEqual({
+      ok: false,
+      errors: [{ field: "matchId", message: "Match not found" }],
+    });
+    await expect(transitionMatchStatusAction(store, "missing", "in_progress")).resolves.toEqual({
+      ok: false,
+      errors: [{ field: "matchId", message: "Match not found" }],
+    });
+  });
 });
