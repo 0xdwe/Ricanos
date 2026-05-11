@@ -1,0 +1,71 @@
+import { describe, expect, it } from "vitest";
+import { buildLeaderboardMatches, recordScore, transitionMatchStatus, validateFixedTargetScore, type MatchRecord } from "./match-model";
+
+const baseMatch: MatchRecord = {
+  id: "match_1",
+  eventId: "event_1",
+  roundId: "round_1",
+  roundNumber: 1,
+  courtNumber: 1,
+  status: "scheduled",
+  teamOneParticipantIds: ["p1", "p4"],
+  teamTwoParticipantIds: ["p2", "p3"],
+  teamOneScore: null,
+  teamTwoScore: null,
+  scoreTarget: 24,
+  scoreOverrideWarning: null,
+  abandonedCountsTowardLeaderboard: false,
+  updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+};
+
+describe("match score domain", () => {
+  it("validates fixed target totals", () => {
+    expect(validateFixedTargetScore({ teamOneScore: 14, teamTwoScore: 10, scoreTarget: 24, overrideConfirmed: false })).toEqual({ ok: true, warning: null });
+    expect(validateFixedTargetScore({ teamOneScore: 12, teamTwoScore: 8, scoreTarget: 24, overrideConfirmed: false })).toEqual({
+      ok: false,
+      warning: "Score total 20 does not match target 24",
+    });
+    expect(validateFixedTargetScore({ teamOneScore: 12, teamTwoScore: 8, scoreTarget: 24, overrideConfirmed: true })).toEqual({
+      ok: true,
+      warning: "Score total 20 does not match target 24",
+    });
+  });
+
+  it("records scores and completes the match when totals are valid", () => {
+    const result = recordScore(baseMatch, { teamOneScore: 14, teamTwoScore: 10, overrideConfirmed: false });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.match).toMatchObject({ status: "completed", teamOneScore: 14, teamTwoScore: 10, scoreOverrideWarning: null });
+    }
+  });
+
+  it("requires override confirmation before saving an invalid target total", () => {
+    const blocked = recordScore(baseMatch, { teamOneScore: 14, teamTwoScore: 9, overrideConfirmed: false });
+    expect(blocked).toEqual({ ok: false, errors: [{ field: "score", message: "Score total 23 does not match target 24" }] });
+
+    const forced = recordScore(baseMatch, { teamOneScore: 14, teamTwoScore: 9, overrideConfirmed: true });
+    expect(forced.ok).toBe(true);
+    if (forced.ok) expect(forced.match.scoreOverrideWarning).toBe("Score total 23 does not match target 24");
+  });
+
+  it("supports status transitions and abandoned count/no-count behavior", () => {
+    expect(transitionMatchStatus(baseMatch, "in_progress").ok).toBe(true);
+    expect(transitionMatchStatus(baseMatch, "completed")).toEqual({ ok: false, errors: [{ field: "status", message: "Completed matches require both scores" }] });
+
+    const abandoned = transitionMatchStatus({ ...baseMatch, teamOneScore: 6, teamTwoScore: 4 }, "abandoned", { abandonedCountsTowardLeaderboard: true });
+    expect(abandoned.ok).toBe(true);
+    if (abandoned.ok) {
+      expect(abandoned.match).toMatchObject({ status: "abandoned", abandonedCountsTowardLeaderboard: true });
+      expect(buildLeaderboardMatches([abandoned.match])).toEqual([
+        {
+          status: "abandoned",
+          countsTowardLeaderboard: true,
+          teamOneParticipantIds: ["p1", "p4"],
+          teamTwoParticipantIds: ["p2", "p3"],
+          teamOneScore: 6,
+          teamTwoScore: 4,
+        },
+      ]);
+    }
+  });
+});

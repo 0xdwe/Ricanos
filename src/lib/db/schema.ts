@@ -1,8 +1,9 @@
-import { integer, pgEnum, pgTable, text, timestamp, uuid, date, boolean } from "drizzle-orm/pg-core";
+import { boolean, date, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const eventStatus = pgEnum("event_status", ["draft", "ready", "live", "completed", "archived"]);
 export const eventFormat = pgEnum("event_format", ["americano", "mexicano"]);
 export const pairingMode = pgEnum("pairing_mode", ["individual", "fixed_team"]);
+export const matchStatus = pgEnum("match_status", ["scheduled", "in_progress", "completed", "abandoned"]);
 
 export const events = pgTable("events", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -61,4 +62,28 @@ export const teamPlayers = pgTable("team_players", {
   teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
   playerId: uuid("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
   sortOrder: integer("sort_order").notNull(),
+});
+
+export const rounds = pgTable("rounds", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  eventId: uuid("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  roundNumber: integer("round_number").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const matches = pgTable("matches", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  eventId: uuid("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  roundId: uuid("round_id").references(() => rounds.id, { onDelete: "set null" }),
+  roundNumber: integer("round_number").notNull(),
+  courtNumber: integer("court_number").notNull(),
+  status: matchStatus("status").notNull().default("scheduled"),
+  teamOneParticipantIds: jsonb("team_one_participant_ids").$type<string[]>().notNull(),
+  teamTwoParticipantIds: jsonb("team_two_participant_ids").$type<string[]>().notNull(),
+  teamOneScore: integer("team_one_score"),
+  teamTwoScore: integer("team_two_score"),
+  scoreTarget: integer("score_target").notNull(),
+  scoreOverrideWarning: text("score_override_warning"),
+  abandonedCountsTowardLeaderboard: boolean("abandoned_counts_toward_leaderboard").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
