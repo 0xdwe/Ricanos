@@ -9,7 +9,8 @@ export default async function PublicEventPage({ params }: PublicEventPageProps) 
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6">
       <header className="rounded-xl bg-blue-600 p-6 text-white shadow-sm">
         <p className="text-sm font-medium uppercase tracking-wide text-blue-100">View-only public event</p>
-        <h1 className="mt-2 text-3xl font-bold">Event: {slug}</h1>
+        <h1 className="mt-2 text-3xl font-bold">Event dashboard</h1>
+        <p className="mt-2 text-blue-100">Public slug: {slug}</p>
         <p className="mt-2 text-blue-100">Leaderboard updates after refresh. Auto-refresh arrives in a later slice.</p>
       </header>
 

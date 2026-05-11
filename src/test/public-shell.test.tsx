@@ -10,5 +10,6 @@ describe("PublicEventPage", () => {
     expect(screen.getByRole("heading", { name: "Leaderboard" })).toBeInTheDocument();
     expect(screen.getByText("View-only public event")).toBeInTheDocument();
     expect(screen.getByText("Current and upcoming matches")).toBeInTheDocument();
+    expect(screen.getByText("Public slug: demo")).toBeInTheDocument();
   });
 });
