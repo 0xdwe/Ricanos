@@ -1,2 +1,9 @@
-.worktrees
+node_modules
+.next
+.env
+.env*.local
+.vercel
+coverage
+dist
 .DS_Store
+.worktrees
