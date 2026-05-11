@@ -46,4 +46,5 @@ NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_K
 - PRD: `docs/prd-padel-community-platform.md`
 - Proposed issues: `docs/issues/proposed-issues.md`
 - Player directory and roster plan: `docs/superpowers/plans/2026-05-11-player-directory-and-rosters.md`
+- Fixed-team registration plan: `docs/superpowers/plans/2026-05-11-fixed-team-registration.md`
 ```
