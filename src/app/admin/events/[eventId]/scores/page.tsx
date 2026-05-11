@@ -1,5 +1,6 @@
 import { createDrizzleAuditLogStore } from "@/features/audit/drizzle-audit-log-store";
-import { correctMexicanoPastScoreAction, transitionMatchStatusAction } from "@/features/matches/match-actions";
+import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
+import { correctMexicanoPastScoreAction, scoreMatchAction, transitionMatchStatusAction } from "@/features/matches/match-actions";
 import type { MexicanoScoreCorrectionChoice } from "@/features/schedules/mexicano-score-correction";
 import type { MatchStatus } from "@/features/matches/match-model";
 import { createDrizzleMatchStore } from "@/features/matches/drizzle-match-store";
@@ -17,13 +18,15 @@ async function saveMatchUpdate(formData: FormData) {
 
   const store = createDrizzleMatchStore();
   const auditStore = createDrizzleAuditLogStore();
+  const eventId = String(formData.get("eventId") ?? "").trim();
   const matchId = String(formData.get("matchId") ?? "").trim();
   const status = String(formData.get("status") ?? "scheduled") as MatchStatus;
   const teamOneScore = parseOptionalScore(formData.get("teamOneScore"));
   const teamTwoScore = parseOptionalScore(formData.get("teamTwoScore"));
   const overrideConfirmed = formData.get("overrideConfirmed") === "on";
   const abandonedCountsTowardLeaderboard = formData.get("abandonedCountsTowardLeaderboard") === "on";
-  const correctionChoice = String(formData.get("correctionChoice") ?? "update_score_only") as MexicanoScoreCorrectionChoice;
+  const correctionChoiceValue = formData.get("correctionChoice");
+  const correctionChoice = typeof correctionChoiceValue === "string" && correctionChoiceValue.length > 0 ? (correctionChoiceValue as MexicanoScoreCorrectionChoice) : undefined;
 
   const existing = await store.getMatch(matchId);
   if (existing && teamOneScore !== null && teamTwoScore !== null) {
@@ -36,15 +39,31 @@ async function saveMatchUpdate(formData: FormData) {
   }
 
   if (status === "completed" && teamOneScore !== null && teamTwoScore !== null) {
-    await correctMexicanoPastScoreAction(store, matchId, { teamOneScore, teamTwoScore, overrideConfirmed, correctionChoice }, { store: auditStore, actorId: null });
+    const event = await loadEvent(eventId);
+    if (event?.format === "mexicano") {
+      await correctMexicanoPastScoreAction(store, matchId, { teamOneScore, teamTwoScore, overrideConfirmed, correctionChoice }, { store: auditStore, actorId: null });
+    } else {
+      await scoreMatchAction(store, matchId, { teamOneScore, teamTwoScore, overrideConfirmed }, { store: auditStore, actorId: null });
+    }
     return;
   }
+
 
   await transitionMatchStatusAction(store, matchId, status, { abandonedCountsTowardLeaderboard }, { store: auditStore, actorId: null });
 }
 
+async function loadEvent(eventId: string) {
+  try {
+    return await createDrizzleEventStore().getEvent(eventId);
+  } catch {
+    return null;
+  }
+}
+
 export default async function EventScoresPage({ params }: EventScoresPageProps) {
   const { eventId } = await params;
+  const event = await loadEvent(eventId);
+  const isMexicano = event?.format === "mexicano";
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6">
@@ -55,6 +74,7 @@ export default async function EventScoresPage({ params }: EventScoresPageProps) 
       </div>
 
       <form action={saveMatchUpdate} className="grid gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <input type="hidden" name="eventId" value={eventId} />
         <div>
           <h2 className="text-xl font-semibold">Match controls</h2>
           <p className="mt-1 text-sm text-slate-600">Update match status, enter scores, and confirm target-total overrides when real matches end early.</p>
@@ -95,18 +115,20 @@ export default async function EventScoresPage({ params }: EventScoresPageProps) 
           </label>
         </div>
 
-        <fieldset className="grid gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950">
-          <legend className="px-1 font-semibold">Mexicano score correction</legend>
-          <p>When editing an earlier Mexicano score, later generated rounds may depend on the old standings. Completed, in-progress, and abandoned future matches are always preserved.</p>
-          <label className="flex items-start gap-3 font-medium">
-            <input className="mt-1" name="correctionChoice" type="radio" value="update_score_only" defaultChecked />
-            Preserve later generated rounds
-          </label>
-          <label className="flex items-start gap-3 font-medium">
-            <input className="mt-1" name="correctionChoice" type="radio" value="update_score_and_regenerate_unplayed_future_rounds" />
-            Regenerate only scheduled, unscored future matches
-          </label>
-        </fieldset>
+        {isMexicano ? (
+          <fieldset className="grid gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950">
+            <legend className="px-1 font-semibold">Mexicano score correction</legend>
+            <p>When editing an earlier Mexicano score, later generated rounds may depend on the old standings. Completed, in-progress, and abandoned future matches are always preserved.</p>
+            <label className="flex items-start gap-3 font-medium">
+              <input className="mt-1" name="correctionChoice" type="radio" value="update_score_only" />
+              Preserve later generated rounds
+            </label>
+            <label className="flex items-start gap-3 font-medium">
+              <input className="mt-1" name="correctionChoice" type="radio" value="update_score_and_regenerate_unplayed_future_rounds" />
+              Mark scheduled, unscored future matches for regeneration
+            </label>
+          </fieldset>
+        ) : null}
 
         <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm font-medium text-slate-700">
           <input className="mt-1" name="abandonedCountsTowardLeaderboard" type="checkbox" />

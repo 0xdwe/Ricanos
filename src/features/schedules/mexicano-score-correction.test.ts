@@ -94,7 +94,7 @@ describe("Mexicano score correction planning", () => {
     await expect(auditStore.listRecent("event_1", 10)).resolves.toEqual(
       expect.arrayContaining([
         expect.objectContaining({ actionType: "score_updated", entityId: "match_1" }),
-        expect.objectContaining({ actionType: "schedule_regenerated", entityKind: "schedule", summary: "Planned regeneration for 1 unplayed future match after round 1 score correction" }),
+        expect.objectContaining({ actionType: "schedule_regenerated", entityKind: "schedule", summary: "Marked 1 unplayed future match for regeneration after round 1 score correction" }),
       ]),
     );
   });

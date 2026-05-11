@@ -14,9 +14,7 @@ describe("score entry page", () => {
     expect(screen.getByLabelText("Team two score")).toBeInTheDocument();
     expect(screen.getByText("Status")).toBeInTheDocument();
     expect(screen.getByText("Override target total after confirmation")).toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Mexicano score correction" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Preserve later generated rounds")).toBeInTheDocument();
-    expect(screen.getByLabelText("Regenerate only scheduled, unscored future matches")).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Mexicano score correction" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save match update" })).toHaveAttribute("type", "submit");
   });
 });

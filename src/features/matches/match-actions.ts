@@ -73,7 +73,7 @@ export async function correctMexicanoPastScoreAction(
       eventId: scored.match.eventId,
       entityKind: "schedule",
       entityId: scored.match.eventId,
-      summary: `Planned regeneration for ${count} unplayed future ${count === 1 ? "match" : "matches"} after round ${existing.roundNumber} score correction`,
+      summary: `Marked ${count} unplayed future ${count === 1 ? "match" : "matches"} for regeneration after round ${existing.roundNumber} score correction`,
     });
   }
 
