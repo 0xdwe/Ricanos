@@ -52,4 +52,5 @@ NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_K
 - Fixed-team round-robin plan: `docs/superpowers/plans/2026-05-11-fixed-team-round-robin.md`
 - Mexicano individual rounds plan: `docs/superpowers/plans/2026-05-11-mexicano-individual-rounds.md`
 - Mexicano fixed-team rounds plan: `docs/superpowers/plans/2026-05-11-mexicano-fixed-team-rounds.md`
+- Byes and rest selection plan: `docs/superpowers/plans/2026-05-11-byes-rest-selection.md`
 ```
