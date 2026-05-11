@@ -11,6 +11,17 @@ async function loadRecentActivity(eventId: string): Promise<AuditEntry[]> {
   }
 }
 
+const actionLabels: Record<string, string> = {
+  score_updated: "Score updated",
+  match_status_updated: "Match status updated",
+  match_players_swapped: "Match players swapped",
+  schedule_generated: "Schedule generated",
+  schedule_regenerated: "Schedule regeneration planned",
+  event_completed: "Event completed",
+  event_reopened: "Event reopened",
+  risky_override_confirmed: "Risky override confirmed",
+};
+
 function formatCreatedAt(value: Date) {
   return new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(value);
 }
@@ -40,7 +51,7 @@ export default async function EventActivityPage({ params }: EventActivityPagePro
             {entries.map((entry) => (
               <li key={entry.id} className="rounded-lg border border-slate-200 p-3 text-sm text-slate-700">
                 <div className="font-medium text-slate-900">{entry.summary}</div>
-                <div className="mt-1 text-xs text-slate-500">{entry.actionType} · {entry.entityKind}:{entry.entityId} · {formatCreatedAt(entry.createdAt)}</div>
+                <div className="mt-1 text-xs text-slate-500">{actionLabels[entry.actionType]} · {entry.entityKind}:{entry.entityId} · {formatCreatedAt(entry.createdAt)}</div>
               </li>
             ))}
           </ul>

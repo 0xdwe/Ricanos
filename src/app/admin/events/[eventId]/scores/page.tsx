@@ -18,7 +18,6 @@ async function saveMatchUpdate(formData: FormData) {
 
   const store = createDrizzleMatchStore();
   const auditStore = createDrizzleAuditLogStore();
-  const eventId = String(formData.get("eventId") ?? "").trim();
   const matchId = String(formData.get("matchId") ?? "").trim();
   const status = String(formData.get("status") ?? "scheduled") as MatchStatus;
   const teamOneScore = parseOptionalScore(formData.get("teamOneScore"));
@@ -29,7 +28,11 @@ async function saveMatchUpdate(formData: FormData) {
   const correctionChoice = typeof correctionChoiceValue === "string" && correctionChoiceValue.length > 0 ? (correctionChoiceValue as MexicanoScoreCorrectionChoice) : undefined;
 
   const existing = await store.getMatch(matchId);
-  if (existing && teamOneScore !== null && teamTwoScore !== null) {
+  if (!existing) return;
+  const event = await loadEvent(existing.eventId);
+  if (!event) return;
+
+  if (teamOneScore !== null && teamTwoScore !== null) {
     const risk = validateRiskyAdminChanges({
       matches: [{ ...existing, status, teamOneScore, teamTwoScore }],
       originalMatches: [existing],
@@ -39,8 +42,7 @@ async function saveMatchUpdate(formData: FormData) {
   }
 
   if (status === "completed" && teamOneScore !== null && teamTwoScore !== null) {
-    const event = await loadEvent(eventId);
-    if (event?.format === "mexicano") {
+    if (event.format === "mexicano") {
       await correctMexicanoPastScoreAction(store, matchId, { teamOneScore, teamTwoScore, overrideConfirmed, correctionChoice }, { store: auditStore, actorId: null });
     } else {
       await scoreMatchAction(store, matchId, { teamOneScore, teamTwoScore, overrideConfirmed }, { store: auditStore, actorId: null });
