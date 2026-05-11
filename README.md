@@ -38,7 +38,7 @@ Ricanos is a mobile-first padel community event manager for Americano and Mexica
 ```bash
 npm test
 npm run typecheck
-npm run build
+NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=anon-key DATABASE_URL=postgres://user:pass@localhost:5432/ricanos npm run build
 ```
 
 ## Product docs
