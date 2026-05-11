@@ -1,5 +1,6 @@
 import { createDrizzleAuditLogStore } from "@/features/audit/drizzle-audit-log-store";
-import { scoreMatchAction, transitionMatchStatusAction } from "@/features/matches/match-actions";
+import { correctMexicanoPastScoreAction, transitionMatchStatusAction } from "@/features/matches/match-actions";
+import type { MexicanoScoreCorrectionChoice } from "@/features/schedules/mexicano-score-correction";
 import type { MatchStatus } from "@/features/matches/match-model";
 import { createDrizzleMatchStore } from "@/features/matches/drizzle-match-store";
 import { validateRiskyAdminChanges } from "@/features/risk/risk-validation";
@@ -22,6 +23,7 @@ async function saveMatchUpdate(formData: FormData) {
   const teamTwoScore = parseOptionalScore(formData.get("teamTwoScore"));
   const overrideConfirmed = formData.get("overrideConfirmed") === "on";
   const abandonedCountsTowardLeaderboard = formData.get("abandonedCountsTowardLeaderboard") === "on";
+  const correctionChoice = String(formData.get("correctionChoice") ?? "update_score_only") as MexicanoScoreCorrectionChoice;
 
   const existing = await store.getMatch(matchId);
   if (existing && teamOneScore !== null && teamTwoScore !== null) {
@@ -34,7 +36,7 @@ async function saveMatchUpdate(formData: FormData) {
   }
 
   if (status === "completed" && teamOneScore !== null && teamTwoScore !== null) {
-    await scoreMatchAction(store, matchId, { teamOneScore, teamTwoScore, overrideConfirmed }, { store: auditStore, actorId: null });
+    await correctMexicanoPastScoreAction(store, matchId, { teamOneScore, teamTwoScore, overrideConfirmed, correctionChoice }, { store: auditStore, actorId: null });
     return;
   }
 
@@ -92,6 +94,19 @@ export default async function EventScoresPage({ params }: EventScoresPageProps) 
             Override target total after confirmation
           </label>
         </div>
+
+        <fieldset className="grid gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950">
+          <legend className="px-1 font-semibold">Mexicano score correction</legend>
+          <p>When editing an earlier Mexicano score, later generated rounds may depend on the old standings. Completed, in-progress, and abandoned future matches are always preserved.</p>
+          <label className="flex items-start gap-3 font-medium">
+            <input className="mt-1" name="correctionChoice" type="radio" value="update_score_only" defaultChecked />
+            Preserve later generated rounds
+          </label>
+          <label className="flex items-start gap-3 font-medium">
+            <input className="mt-1" name="correctionChoice" type="radio" value="update_score_and_regenerate_unplayed_future_rounds" />
+            Regenerate only scheduled, unscored future matches
+          </label>
+        </fieldset>
 
         <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm font-medium text-slate-700">
           <input className="mt-1" name="abandonedCountsTowardLeaderboard" type="checkbox" />
