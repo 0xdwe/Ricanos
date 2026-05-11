@@ -48,4 +48,5 @@ NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_K
 - Player directory and roster plan: `docs/superpowers/plans/2026-05-11-player-directory-and-rosters.md`
 - Fixed-team registration plan: `docs/superpowers/plans/2026-05-11-fixed-team-registration.md`
 - Leaderboard engine plan: `docs/superpowers/plans/2026-05-11-leaderboard-engine.md`
+- Americano schedule preview plan: `docs/superpowers/plans/2026-05-11-americano-schedule-preview.md`
 ```
