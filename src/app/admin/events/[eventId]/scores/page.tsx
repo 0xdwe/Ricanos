@@ -1,11 +1,10 @@
 import { revalidatePath } from "next/cache";
 import { createDrizzleAuditLogStore } from "@/features/audit/drizzle-audit-log-store";
-import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
+import { loadEventReadModel } from "@/features/events/event-read-model";
 import { correctMexicanoPastScoreAction, scoreMatchAction, transitionMatchStatusAction } from "@/features/matches/match-actions";
 import type { MexicanoScoreCorrectionChoice } from "@/features/schedules/mexicano-score-correction";
 import type { MatchStatus } from "@/features/matches/match-model";
 import { createDrizzleMatchStore } from "@/features/matches/drizzle-match-store";
-import { createDrizzlePlayerStore } from "@/features/players/drizzle-player-store";
 import { validateRiskyAdminChanges } from "@/features/risk/risk-validation";
 import { replaceMatchParticipantFormAction } from "@/features/matches/match-participant-actions";
 
@@ -38,8 +37,10 @@ async function saveMatchUpdate(formData: FormData) {
 
   const existing = await store.getMatch(matchId);
   if (!existing) return;
-  const event = await loadEvent(existing.eventId);
-  if (!event) return;
+  
+  const readModel = await loadEventReadModel(existing.eventId);
+  if (!readModel) return;
+  const event = readModel.event;
 
   if (teamOneScore !== null && teamTwoScore !== null) {
     const risk = validateRiskyAdminChanges({
@@ -67,27 +68,17 @@ async function saveMatchUpdate(formData: FormData) {
   }
 }
 
-async function loadEvent(eventId: string) {
-  try {
-    return await createDrizzleEventStore().getEvent(eventId);
-  } catch {
-    return null;
-  }
-}
-
 function namesFor(ids: string[], nameById: Map<string, string>) {
   return ids.map((id) => nameById.get(id) ?? "Unknown player").join(" + ");
 }
 
 export default async function EventScoresPage({ params }: EventScoresPageProps) {
   const { eventId } = await params;
-  const event = await loadEvent(eventId);
-  const isMexicano = event?.format === "mexicano";
-  const [matches, players] = await Promise.all([
-    createDrizzleMatchStore().listMatches(eventId).catch(() => []),
-    createDrizzlePlayerStore().listPlayers().catch(() => []),
-  ]);
-  const nameById = new Map(players.map((player) => [player.id, player.displayName]));
+  const readModel = await loadEventReadModel(eventId);
+  if (!readModel) return null;
+  
+  const { event, matches, nameById } = readModel;
+  const isMexicano = event.format === "mexicano";
   const replaceParticipantAction = replaceMatchParticipantFormAction.bind(null, eventId);
 
   return (

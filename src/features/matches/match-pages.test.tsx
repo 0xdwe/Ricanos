@@ -2,26 +2,22 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import EventScoresPage from "@/app/admin/events/[eventId]/scores/page";
 
-vi.mock("@/features/events/drizzle-event-store", () => ({
-  createDrizzleEventStore: () => ({
-    getEvent: async () => ({ id: "event_1", name: "Friday Americano", format: "americano" }),
-  }),
+vi.mock("@/lib/db", () => ({
+  createDb: () => ({}),
 }));
 
-vi.mock("@/features/players/drizzle-player-store", () => ({
-  createDrizzlePlayerStore: () => ({
-    listPlayers: async () => [
+vi.mock("@/features/events/event-read-model", () => ({
+  loadEventReadModel: async () => ({
+    event: { id: "event_1", name: "Friday Americano", format: "americano", publicSlug: "friday-americano-abc" },
+    players: [
       { id: "player_1", displayName: "Alice" },
       { id: "player_2", displayName: "Ben" },
       { id: "player_3", displayName: "Carla" },
       { id: "player_4", displayName: "Dion" },
     ],
-  }),
-}));
-
-vi.mock("@/features/matches/drizzle-match-store", () => ({
-  createDrizzleMatchStore: () => ({
-    listMatches: async () => [
+    roster: [],
+    teams: [],
+    matches: [
       {
         id: "match_1",
         eventId: "event_1",
@@ -38,6 +34,19 @@ vi.mock("@/features/matches/drizzle-match-store", () => ({
         updatedAt: new Date(),
       },
     ],
+    participants: [],
+    playerById: new Map(),
+    nameById: new Map([
+      ["player_1", "Alice"],
+      ["player_2", "Ben"],
+      ["player_3", "Carla"],
+      ["player_4", "Dion"],
+    ]),
+  }),
+}));
+
+vi.mock("@/features/matches/drizzle-match-store", () => ({
+  createDrizzleMatchStore: () => ({
     getMatch: async () => null,
   }),
 }));

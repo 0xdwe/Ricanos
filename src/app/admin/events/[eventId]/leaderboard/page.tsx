@@ -1,8 +1,5 @@
 import Link from "next/link";
-import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
-import { createDrizzleMatchStore } from "@/features/matches/drizzle-match-store";
-import { createDrizzlePlayerStore } from "@/features/players/drizzle-player-store";
-import { createDrizzleTeamStore } from "@/features/teams/drizzle-team-store";
+import { loadEventReadModel } from "@/features/events/event-read-model";
 import { calculateLeaderboard } from "@/features/leaderboards/leaderboard-engine";
 import { buildLeaderboardMatches } from "@/features/matches/match-model";
 import { notFound } from "next/navigation";
@@ -12,36 +9,13 @@ type EventLeaderboardPageProps = { params: Promise<{ eventId: string }> };
 export default async function EventLeaderboardPage({ params }: EventLeaderboardPageProps) {
   const { eventId } = await params;
   
-  const eventStore = createDrizzleEventStore();
-  const event = await eventStore.getEvent(eventId);
-  
-  if (!event) {
-    notFound();
-  }
+  const readModel = await loadEventReadModel(eventId);
+  if (!readModel) notFound();
 
-  const playerStore = createDrizzlePlayerStore();
-  const teamStore = createDrizzleTeamStore();
-  const matchStore = createDrizzleMatchStore();
-
-  const [players, roster, teams, matches] = await Promise.all([
-    playerStore.listPlayers(),
-    playerStore.listRoster(eventId),
-    teamStore.listTeams(eventId),
-    matchStore.listMatches(eventId),
-  ]);
-
-  const playerById = new Map(players.map((p) => [p.id, p]));
-  
-  const participants = event.pairingMode === "fixed_team" 
-    ? teams.map(t => ({ id: t.id, displayName: t.displayName }))
-    : roster.map(r => {
-        const p = playerById.get(r.playerId);
-        return p ? { id: p.id, displayName: p.displayName } : null;
-      }).filter((p): p is { id: string; displayName: string } => p !== null);
-
+  const { event, participants } = readModel;
   const standings = calculateLeaderboard({ 
     participants, 
-    matches: buildLeaderboardMatches(matches) 
+    matches: buildLeaderboardMatches(readModel.matches) 
   });
 
   return (
