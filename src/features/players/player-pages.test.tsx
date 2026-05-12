@@ -15,6 +15,10 @@ vi.mock("@/features/players/drizzle-player-store", () => ({
   }),
 }));
 
+vi.mock("@/features/teams/drizzle-team-store", () => ({
+  createDrizzleTeamStore: () => ({ listTeams: async () => [] }),
+}));
+
 import EventRosterPage from "@/app/admin/events/[eventId]/players/page";
 
 describe("player admin pages", () => {
