@@ -27,7 +27,13 @@ Ricanos is a mobile-first padel community event manager for Americano and Mexica
 
 3. Fill in Supabase and database values in `.env.local`.
 
-4. Run development server:
+4. Apply database migrations when using a fresh Supabase database:
+
+   ```bash
+   npm run db:migrate
+   ```
+
+5. Run development server:
 
    ```bash
    npm run dev
@@ -41,8 +47,13 @@ npm run typecheck
 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=anon-key DATABASE_URL=postgres://user:pass@localhost:5432/ricanos npm run build
 ```
 
+## Deployment
+
+See `docs/deployment.md` for Vercel + Supabase setup, required environment variables, migrations, smoke tests, and troubleshooting.
+
 ## Product docs
 
+- Deployment: `docs/deployment.md`
 - PRD: `docs/prd-padel-community-platform.md`
 - Proposed issues: `docs/issues/proposed-issues.md`
 - Player directory and roster plan: `docs/superpowers/plans/2026-05-11-player-directory-and-rosters.md`
@@ -53,4 +64,3 @@ NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_K
 - Mexicano individual rounds plan: `docs/superpowers/plans/2026-05-11-mexicano-individual-rounds.md`
 - Mexicano fixed-team rounds plan: `docs/superpowers/plans/2026-05-11-mexicano-fixed-team-rounds.md`
 - Byes and rest selection plan: `docs/superpowers/plans/2026-05-11-byes-rest-selection.md`
-```
