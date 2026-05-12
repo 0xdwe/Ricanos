@@ -14,8 +14,8 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
-    "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.105.4",
     "drizzle-orm": "latest",
     "lucide-react": "latest",
     "next": "latest",
