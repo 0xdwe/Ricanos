@@ -68,14 +68,15 @@ export default async function EventScoresPage({ params }: EventScoresPageProps) 
   const isMexicano = event?.format === "mexicano";
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6">
-      <div>
-        <p className="text-sm font-medium uppercase tracking-wide text-blue-700">Admin</p>
-        <h1 className="text-3xl font-bold">Score entry</h1>
-        <p className="mt-2 text-slate-600">Event ID: {eventId}</p>
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 pb-24 pt-6 sm:px-6 sm:py-10">
+      <div className="rounded-2xl bg-slate-950 p-5 text-slate-50 shadow-sm sm:bg-transparent sm:p-0 sm:text-slate-950 sm:shadow-none">
+        <p className="text-sm font-medium uppercase tracking-wide text-blue-200 sm:text-blue-700">Admin</p>
+        <h1 className="mt-1 text-3xl font-bold">Score entry</h1>
+        <p className="mt-2 text-sm text-slate-300 sm:text-slate-600">Event ID: {eventId}</p>
+        <p className="mt-3 text-sm text-slate-200 sm:hidden">Courtside controls use large tap targets and a sticky save action.</p>
       </div>
 
-      <form action={saveMatchUpdate} className="grid gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <form action={saveMatchUpdate} className="grid gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <input type="hidden" name="eventId" value={eventId} />
         <div>
           <h2 className="text-xl font-semibold">Match controls</h2>
@@ -108,36 +109,38 @@ export default async function EventScoresPage({ params }: EventScoresPageProps) 
           </label>
         </div>
 
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
           <div className="font-semibold">Risk warnings require confirmation</div>
           <p className="mt-1">Score target mismatches and risky live edits are blocked until admin confirms override.</p>
-          <label className="mt-3 flex items-start gap-3 font-medium">
-            <input className="mt-1" name="overrideConfirmed" type="checkbox" />
+          <label className="mt-3 flex min-h-11 items-start gap-3 font-medium">
+            <input className="mt-1 h-5 w-5" name="overrideConfirmed" type="checkbox" />
             Override target total after confirmation
           </label>
         </div>
 
         {isMexicano ? (
-          <fieldset className="grid gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950">
+          <fieldset className="grid gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
             <legend className="px-1 font-semibold">Mexicano score correction</legend>
             <p>When editing an earlier Mexicano score, later generated rounds may depend on the old standings. Completed, in-progress, and abandoned future matches are always preserved.</p>
-            <label className="flex items-start gap-3 font-medium">
-              <input className="mt-1" name="correctionChoice" type="radio" value="update_score_only" />
+            <label className="flex min-h-11 items-start gap-3 font-medium">
+              <input className="mt-1 h-5 w-5" name="correctionChoice" type="radio" value="update_score_only" />
               Preserve later generated rounds
             </label>
-            <label className="flex items-start gap-3 font-medium">
-              <input className="mt-1" name="correctionChoice" type="radio" value="update_score_and_regenerate_unplayed_future_rounds" />
+            <label className="flex min-h-11 items-start gap-3 font-medium">
+              <input className="mt-1 h-5 w-5" name="correctionChoice" type="radio" value="update_score_and_regenerate_unplayed_future_rounds" />
               Mark scheduled, unscored future matches for regeneration
             </label>
           </fieldset>
         ) : null}
 
-        <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm font-medium text-slate-700">
-          <input className="mt-1" name="abandonedCountsTowardLeaderboard" type="checkbox" />
+        <label className="flex min-h-12 items-start gap-3 rounded-xl border border-slate-200 p-4 text-sm font-medium text-slate-700">
+          <input className="mt-1 h-5 w-5" name="abandonedCountsTowardLeaderboard" type="checkbox" />
           Count abandoned match toward leaderboard
         </label>
 
-        <button className="min-h-12 rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white" type="submit">Save match update</button>
+        <div className="fixed inset-x-4 bottom-3 z-10 mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-lg shadow-slate-900/10 backdrop-blur supports-[backdrop-filter]:bg-white/80 sm:sticky sm:inset-x-auto">
+          <button className="min-h-14 w-full rounded-xl bg-blue-700 px-4 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200" type="submit">Save match update</button>
+        </div>
       </form>
     </main>
   );
