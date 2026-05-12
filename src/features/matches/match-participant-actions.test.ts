@@ -2,6 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
+vi.mock("@/features/events/drizzle-event-store", () => ({
+  createDrizzleEventStore: () => ({
+    getEvent: async () => ({ publicSlug: "test-event-abc123" }),
+  }),
+}));
+
 let updated: any = null;
 const match = {
   id: "match_1",

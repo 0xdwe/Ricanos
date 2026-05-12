@@ -60,7 +60,11 @@ async function saveMatchUpdate(formData: FormData) {
     await transitionMatchStatusAction(store, matchId, status, { abandonedCountsTowardLeaderboard }, { store: auditStore, actorId: null });
   }
 
-  if (eventId) revalidatePath(`/admin/events/${eventId}/scores`);
+  if (eventId) {
+    revalidatePath(`/admin/events/${eventId}/scores`);
+    revalidatePath(`/admin/events/${eventId}/leaderboard`);
+    if (event?.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
+  }
 }
 
 async function loadEvent(eventId: string) {
@@ -89,7 +93,10 @@ export default async function EventScoresPage({ params }: EventScoresPageProps) 
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 bg-slate-50 px-4 pb-24 pt-6 sm:px-6 sm:py-10">
       <div className="rounded-3xl bg-slate-950 p-6 text-slate-50 shadow-sm">
-        <p className="text-sm font-medium uppercase tracking-wide text-blue-200">Admin score desk</p>
+        <a href={`/admin/events/${eventId}`} className="text-sm font-medium text-blue-200 hover:text-blue-100">
+          ← Back to event
+        </a>
+        <p className="mt-3 text-sm font-medium uppercase tracking-wide text-blue-200">Admin score desk</p>
         <h1 className="mt-1 text-3xl font-bold">Today&apos;s matches</h1>
         <p className="mt-2 text-slate-300">{event?.name ?? "Event"}</p>
       </div>

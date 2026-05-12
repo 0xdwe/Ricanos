@@ -56,17 +56,21 @@ export async function updateEventFromForm(eventId: string, prevState: any, formD
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const store = createDrizzleEventStore();
+  const event = await store.getEvent(eventId);
   const result = await updateEventAction(store, eventId, parsed.data);
   if (!result.ok) return { error: result.errors[0].message };
 
   revalidatePath("/admin");
   revalidatePath(`/admin/events/${eventId}`);
+  if (event?.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
   return { success: true };
 }
 
 export async function deleteEventFromForm(eventId: string) {
   const store = createDrizzleEventStore();
+  const event = await store.getEvent(eventId);
   await store.deleteEvent(eventId);
   revalidatePath("/admin");
+  if (event?.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
   redirect("/admin");
 }

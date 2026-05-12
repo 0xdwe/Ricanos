@@ -84,8 +84,12 @@ export function EditEventForm({ event }: { event: EventRecord }) {
 
       <section className="rounded-xl border border-red-200 bg-red-50 p-6">
         <h2 className="text-xl font-semibold text-red-900">Danger zone</h2>
-        <p className="mt-1 text-sm text-red-800">Delete this event and all related roster, rounds, matches, teams, and audit records.</p>
-        <form action={deleteEventFromForm.bind(null, event.id)} className="mt-4">
+        <p className="mt-1 text-sm text-red-800">Delete this event and all related roster, rounds, matches, teams, and audit records. This action cannot be undone.</p>
+        <form action={deleteEventFromForm.bind(null, event.id)} className="mt-4" onSubmit={(e) => {
+          if (!confirm(`Are you sure you want to delete "${event.name}"? This will permanently delete all matches, scores, and roster data. This action cannot be undone.`)) {
+            e.preventDefault();
+          }
+        }}>
           <button className="rounded-lg bg-red-600 px-5 py-3 font-semibold text-white hover:bg-red-700" type="submit">
             Delete event
           </button>

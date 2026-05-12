@@ -102,6 +102,8 @@ export async function generateScheduleFormAction(eventId: string, prevState: any
 
       revalidatePath(`/admin/events/${eventId}/schedule/americano`);
       revalidatePath(`/admin/events/${eventId}/scores`);
+      revalidatePath(`/admin/events/${eventId}/leaderboard`);
+      if (event.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
       return { saved: true, success: true, matchCount: countMatches(schedule) };
     }
 

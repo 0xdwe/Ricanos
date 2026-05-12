@@ -28,9 +28,13 @@ export async function replaceMatchParticipantForTest(eventId: string, formData: 
   }
 
   await matchStore.updateParticipants(matchId, { teamOneParticipantIds, teamTwoParticipantIds });
+  
+  const eventStore = await import("@/features/events/drizzle-event-store").then(m => m.createDrizzleEventStore());
+  const event = await eventStore.getEvent(eventId);
+  
   revalidatePath(`/admin/events/${eventId}/scores`);
   revalidatePath(`/admin/events/${eventId}/leaderboard`);
-  revalidatePath(`/events`);
+  if (event?.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
   return { success: true, replacementId: replacement };
 }
 
