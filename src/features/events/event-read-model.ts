@@ -47,7 +47,11 @@ export async function loadEventReadModel(eventId: string): Promise<EventReadMode
   ]);
 
   const playerById = new Map(players.map((p) => [p.id, p]));
-  const nameById = new Map(players.map((p) => [p.id, p.displayName]));
+  
+  // Build nameById map for both players and teams
+  const nameById = new Map<string, string>();
+  players.forEach((p) => nameById.set(p.id, p.displayName));
+  teams.forEach((t) => nameById.set(t.id, t.displayName));
 
   const participants: Participant[] =
     event.pairingMode === "fixed_team"
