@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
+import { EventStatusForm } from "@/features/events/event-status-form";
 import { notFound } from "next/navigation";
 
 type EventDetailPageProps = { params: Promise<{ eventId: string }> };
@@ -92,6 +93,8 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
         </div>
 
         <div className="space-y-6">
+          <EventStatusForm eventId={event.id} status={event.status} />
+
           <section className="rounded-xl border border-slate-200 bg-slate-50 p-6">
             <h2 className="text-lg font-semibold mb-4">Share Links</h2>
             <div className="space-y-4">
