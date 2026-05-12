@@ -18,11 +18,12 @@ vi.mock("@/features/players/drizzle-player-store", () => ({
 import EventRosterPage from "@/app/admin/events/[eventId]/players/page";
 
 describe("player admin pages", () => {
-  it("renders reusable player directory shell", () => {
+  it("explains that the player directory is automatic and points admins back to events", () => {
     render(<PlayerDirectoryPage />);
     expect(screen.getByRole("heading", { name: "Player directory" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Add player name")).toBeInTheDocument();
-    expect(screen.getByLabelText("Paste player list")).toBeInTheDocument();
+    expect(screen.getByText(/You usually do not need this page during an event/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to events" })).toHaveAttribute("href", "/admin");
+    expect(screen.queryByRole("button", { name: "Save players" })).not.toBeInTheDocument();
   });
 
   it("renders event roster shell", async () => {

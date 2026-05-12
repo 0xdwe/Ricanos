@@ -1,23 +1,58 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import EventScoresPage from "@/app/admin/events/[eventId]/scores/page";
 
+vi.mock("@/features/events/drizzle-event-store", () => ({
+  createDrizzleEventStore: () => ({
+    getEvent: async () => ({ id: "event_1", name: "Friday Americano", format: "americano" }),
+  }),
+}));
+
+vi.mock("@/features/players/drizzle-player-store", () => ({
+  createDrizzlePlayerStore: () => ({
+    listPlayers: async () => [
+      { id: "player_1", displayName: "Alice" },
+      { id: "player_2", displayName: "Ben" },
+      { id: "player_3", displayName: "Carla" },
+      { id: "player_4", displayName: "Dion" },
+    ],
+  }),
+}));
+
+vi.mock("@/features/matches/drizzle-match-store", () => ({
+  createDrizzleMatchStore: () => ({
+    listMatches: async () => [
+      {
+        id: "match_1",
+        eventId: "event_1",
+        roundNumber: 1,
+        courtNumber: 1,
+        status: "scheduled",
+        teamOneParticipantIds: ["player_1", "player_2"],
+        teamTwoParticipantIds: ["player_3", "player_4"],
+        teamOneScore: null,
+        teamTwoScore: null,
+        scoreTarget: 32,
+        scoreOverrideWarning: null,
+        abandonedCountsTowardLeaderboard: false,
+        updatedAt: new Date(),
+      },
+    ],
+    getMatch: async () => null,
+  }),
+}));
+
 describe("score entry page", () => {
-  it("renders mobile-friendly admin score entry form", async () => {
+  it("renders each match as a simple score card instead of asking admins for a UUID", async () => {
     const ui = await EventScoresPage({ params: Promise.resolve({ eventId: "event_1" }) });
     render(ui);
 
-    expect(screen.getByRole("heading", { name: "Score entry" })).toBeInTheDocument();
-    expect(screen.getByText("Event ID: event_1")).toBeInTheDocument();
-    expect(screen.getByLabelText("Match ID")).toBeInTheDocument();
-    expect(screen.getByLabelText("Team one score")).toBeInTheDocument();
-    expect(screen.getByLabelText("Team two score")).toBeInTheDocument();
-    expect(screen.getByText("Status")).toBeInTheDocument();
-    expect(screen.getByText("Override target total after confirmation")).toBeInTheDocument();
-    expect(screen.queryByRole("group", { name: "Mexicano score correction" })).not.toBeInTheDocument();
-    const saveButton = screen.getByRole("button", { name: "Save match update" });
-    expect(saveButton).toHaveAttribute("type", "submit");
-    expect(saveButton.closest("div")).toHaveClass("fixed");
-    expect(saveButton).toHaveClass("min-h-14");
+    expect(screen.getByRole("heading", { name: "Today's matches" })).toBeInTheDocument();
+    expect(screen.getByText("Friday Americano")).toBeInTheDocument();
+    expect(screen.getByText("Round 1 • Court 1")).toBeInTheDocument();
+    expect(screen.getByText("Alice + Ben")).toBeInTheDocument();
+    expect(screen.getByText("Carla + Dion")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Match ID")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save score" })).toBeInTheDocument();
   });
 });

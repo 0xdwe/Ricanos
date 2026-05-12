@@ -1,10 +1,14 @@
+import { revalidatePath } from "next/cache";
 import { createDrizzleAuditLogStore } from "@/features/audit/drizzle-audit-log-store";
 import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
 import { correctMexicanoPastScoreAction, scoreMatchAction, transitionMatchStatusAction } from "@/features/matches/match-actions";
 import type { MexicanoScoreCorrectionChoice } from "@/features/schedules/mexicano-score-correction";
 import type { MatchStatus } from "@/features/matches/match-model";
 import { createDrizzleMatchStore } from "@/features/matches/drizzle-match-store";
+import { createDrizzlePlayerStore } from "@/features/players/drizzle-player-store";
 import { validateRiskyAdminChanges } from "@/features/risk/risk-validation";
+
+export const dynamic = "force-dynamic";
 
 type EventScoresPageProps = { params: Promise<{ eventId: string }> };
 
@@ -19,13 +23,17 @@ async function saveMatchUpdate(formData: FormData) {
   const store = createDrizzleMatchStore();
   const auditStore = createDrizzleAuditLogStore();
   const matchId = String(formData.get("matchId") ?? "").trim();
-  const status = String(formData.get("status") ?? "scheduled") as MatchStatus;
+  const eventId = String(formData.get("eventId") ?? "").trim();
+  const status = String(formData.get("status") ?? "completed") as MatchStatus;
   const teamOneScore = parseOptionalScore(formData.get("teamOneScore"));
   const teamTwoScore = parseOptionalScore(formData.get("teamTwoScore"));
   const overrideConfirmed = formData.get("overrideConfirmed") === "on";
   const abandonedCountsTowardLeaderboard = formData.get("abandonedCountsTowardLeaderboard") === "on";
   const correctionChoiceValue = formData.get("correctionChoice");
   const correctionChoice = typeof correctionChoiceValue === "string" && correctionChoiceValue.length > 0 ? (correctionChoiceValue as MexicanoScoreCorrectionChoice) : undefined;
+
+  const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(matchId);
+  if (!uuidLike) return;
 
   const existing = await store.getMatch(matchId);
   if (!existing) return;
@@ -47,11 +55,11 @@ async function saveMatchUpdate(formData: FormData) {
     } else {
       await scoreMatchAction(store, matchId, { teamOneScore, teamTwoScore, overrideConfirmed }, { store: auditStore, actorId: null });
     }
-    return;
+  } else {
+    await transitionMatchStatusAction(store, matchId, status, { abandonedCountsTowardLeaderboard }, { store: auditStore, actorId: null });
   }
 
-
-  await transitionMatchStatusAction(store, matchId, status, { abandonedCountsTowardLeaderboard }, { store: auditStore, actorId: null });
+  if (eventId) revalidatePath(`/admin/events/${eventId}/scores`);
 }
 
 async function loadEvent(eventId: string) {
@@ -62,86 +70,72 @@ async function loadEvent(eventId: string) {
   }
 }
 
+function namesFor(ids: string[], nameById: Map<string, string>) {
+  return ids.map((id) => nameById.get(id) ?? "Unknown player").join(" + ");
+}
+
 export default async function EventScoresPage({ params }: EventScoresPageProps) {
   const { eventId } = await params;
   const event = await loadEvent(eventId);
   const isMexicano = event?.format === "mexicano";
+  const [matches, players] = await Promise.all([
+    createDrizzleMatchStore().listMatches(eventId).catch(() => []),
+    createDrizzlePlayerStore().listPlayers().catch(() => []),
+  ]);
+  const nameById = new Map(players.map((player) => [player.id, player.displayName]));
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 pb-24 pt-6 sm:px-6 sm:py-10">
-      <div className="rounded-2xl bg-slate-950 p-5 text-slate-50 shadow-sm sm:bg-transparent sm:p-0 sm:text-slate-950 sm:shadow-none">
-        <p className="text-sm font-medium uppercase tracking-wide text-blue-200 sm:text-blue-700">Admin</p>
-        <h1 className="mt-1 text-3xl font-bold">Score entry</h1>
-        <p className="mt-2 text-sm text-slate-300 sm:text-slate-600">Event ID: {eventId}</p>
-        <p className="mt-3 text-sm text-slate-200 sm:hidden">Courtside controls use large tap targets and a sticky save action.</p>
+    <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 bg-slate-50 px-4 pb-24 pt-6 sm:px-6 sm:py-10">
+      <div className="rounded-3xl bg-slate-950 p-6 text-slate-50 shadow-sm">
+        <p className="text-sm font-medium uppercase tracking-wide text-blue-200">Admin score desk</p>
+        <h1 className="mt-1 text-3xl font-bold">Today&apos;s matches</h1>
+        <p className="mt-2 text-slate-300">{event?.name ?? "Event"}</p>
       </div>
 
-      <form action={saveMatchUpdate} className="grid gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <input type="hidden" name="eventId" value={eventId} />
-        <div>
-          <h2 className="text-xl font-semibold">Match controls</h2>
-          <p className="mt-1 text-sm text-slate-600">Update match status, enter scores, and confirm target-total overrides when real matches end early.</p>
-        </div>
+      {matches.length === 0 ? (
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+          <h2 className="text-xl font-semibold">No matches yet</h2>
+          <p className="mt-2 text-slate-600">Add players, generate the schedule, then return here to score each match.</p>
+        </section>
+      ) : (
+        <section className="grid gap-4">
+          {matches.map((match) => (
+            <form key={match.id} action={saveMatchUpdate} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+              <input type="hidden" name="eventId" value={eventId} />
+              <input type="hidden" name="matchId" value={match.id} />
+              <input type="hidden" name="status" value="completed" />
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-blue-700">Round {match.roundNumber} • Court {match.courtNumber}</div>
+                  <div className="mt-1 text-xs uppercase tracking-wide text-slate-500">{match.status.replace("_", " ")}</div>
+                </div>
+                <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700" type="submit">Save score</button>
+              </div>
 
-        <label className="grid gap-2 font-medium">
-          Match ID
-          <input className="min-h-12 rounded-lg border border-slate-300 px-3 py-2" name="matchId" placeholder="match uuid" required />
-        </label>
+              <div className="mt-5 grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
+                <label className="grid gap-2">
+                  <span className="font-semibold text-slate-900">{namesFor(match.teamOneParticipantIds, nameById)}</span>
+                  <input className="min-h-14 rounded-xl border border-slate-300 px-4 text-2xl font-bold" name="teamOneScore" inputMode="numeric" type="number" min="0" defaultValue={match.teamOneScore ?? ""} placeholder="0" />
+                </label>
+                <div className="hidden pb-4 text-sm font-bold text-slate-400 sm:block">VS</div>
+                <label className="grid gap-2">
+                  <span className="font-semibold text-slate-900">{namesFor(match.teamTwoParticipantIds, nameById)}</span>
+                  <input className="min-h-14 rounded-xl border border-slate-300 px-4 text-2xl font-bold" name="teamTwoScore" inputMode="numeric" type="number" min="0" defaultValue={match.teamTwoScore ?? ""} placeholder="0" />
+                </label>
+              </div>
 
-        <label className="grid gap-2 font-medium">
-          Status
-          <select className="min-h-12 rounded-lg border border-slate-300 px-3 py-2" name="status" defaultValue="scheduled">
-            <option value="scheduled">Scheduled</option>
-            <option value="in_progress">In progress</option>
-            <option value="completed">Completed</option>
-            <option value="abandoned">Abandoned</option>
-          </select>
-        </label>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="grid gap-2 font-medium">
-            Team one score
-            <input className="min-h-12 rounded-lg border border-slate-300 px-3 py-2 text-lg" name="teamOneScore" inputMode="numeric" type="number" min="0" placeholder="0" />
-          </label>
-          <label className="grid gap-2 font-medium">
-            Team two score
-            <input className="min-h-12 rounded-lg border border-slate-300 px-3 py-2 text-lg" name="teamTwoScore" inputMode="numeric" type="number" min="0" placeholder="0" />
-          </label>
-        </div>
-
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-          <div className="font-semibold">Risk warnings require confirmation</div>
-          <p className="mt-1">Score target mismatches and risky live edits are blocked until admin confirms override.</p>
-          <label className="mt-3 flex min-h-11 items-start gap-3 font-medium">
-            <input className="mt-1 h-5 w-5" name="overrideConfirmed" type="checkbox" />
-            Override target total after confirmation
-          </label>
-        </div>
-
-        {isMexicano ? (
-          <fieldset className="grid gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
-            <legend className="px-1 font-semibold">Mexicano score correction</legend>
-            <p>When editing an earlier Mexicano score, later generated rounds may depend on the old standings. Completed, in-progress, and abandoned future matches are always preserved.</p>
-            <label className="flex min-h-11 items-start gap-3 font-medium">
-              <input className="mt-1 h-5 w-5" name="correctionChoice" type="radio" value="update_score_only" />
-              Preserve later generated rounds
-            </label>
-            <label className="flex min-h-11 items-start gap-3 font-medium">
-              <input className="mt-1 h-5 w-5" name="correctionChoice" type="radio" value="update_score_and_regenerate_unplayed_future_rounds" />
-              Mark scheduled, unscored future matches for regeneration
-            </label>
-          </fieldset>
-        ) : null}
-
-        <label className="flex min-h-12 items-start gap-3 rounded-xl border border-slate-200 p-4 text-sm font-medium text-slate-700">
-          <input className="mt-1 h-5 w-5" name="abandonedCountsTowardLeaderboard" type="checkbox" />
-          Count abandoned match toward leaderboard
-        </label>
-
-        <div className="fixed inset-x-4 bottom-3 z-10 mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-lg shadow-slate-900/10 backdrop-blur supports-[backdrop-filter]:bg-white/80 sm:sticky sm:inset-x-auto">
-          <button className="min-h-14 w-full rounded-xl bg-blue-700 px-4 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200" type="submit">Save match update</button>
-        </div>
-      </form>
+              <details className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+                <summary className="cursor-pointer font-medium">More options</summary>
+                <div className="mt-3 grid gap-3">
+                  <label className="flex items-center gap-2"><input name="overrideConfirmed" type="checkbox" /> Override score target total</label>
+                  <label className="flex items-center gap-2"><input name="abandonedCountsTowardLeaderboard" type="checkbox" /> Count abandoned match toward leaderboard</label>
+                  {isMexicano ? <input type="hidden" name="correctionChoice" value="update_score_only" /> : null}
+                </div>
+              </details>
+            </form>
+          ))}
+        </section>
+      )}
     </main>
   );
 }
