@@ -1,6 +1,23 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import NewEventPage from "@/app/admin/events/new/page";
+
+vi.mock("@/features/events/drizzle-event-store", () => ({
+  createDrizzleEventStore: () => ({
+    getEvent: async () => ({
+      id: "event_1",
+      name: "Friday Americano",
+      publicSlug: "friday-americano",
+      status: "draft",
+      format: "americano",
+      pairingMode: "individual",
+      courtCount: 2,
+      scoreTarget: 32,
+      roundCount: 4,
+    }),
+  }),
+}));
+
 import EventDetailPage from "@/app/admin/events/[eventId]/page";
 
 describe("admin event pages", () => {
@@ -15,7 +32,7 @@ describe("admin event pages", () => {
   it("renders event settings shell", async () => {
     const ui = await EventDetailPage({ params: Promise.resolve({ eventId: "event_1" }) });
     render(ui);
-    expect(screen.getByRole("heading", { name: "Event settings" })).toBeInTheDocument();
-    expect(screen.getByText("Event ID: event_1")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Friday Americano" })).toBeInTheDocument();
+    expect(screen.getByText("Event Configuration")).toBeInTheDocument();
   });
 });

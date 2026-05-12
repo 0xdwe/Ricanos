@@ -1,6 +1,20 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import PlayerDirectoryPage from "@/app/admin/players/page";
+
+vi.mock("@/features/events/drizzle-event-store", () => ({
+  createDrizzleEventStore: () => ({
+    getEvent: async () => ({ id: "event_1", name: "Friday Americano", pairingMode: "individual" }),
+  }),
+}));
+
+vi.mock("@/features/players/drizzle-player-store", () => ({
+  createDrizzlePlayerStore: () => ({
+    listPlayers: async () => [{ id: "player_1", displayName: "Alice" }],
+    listRoster: async () => [{ eventId: "event_1", playerId: "player_1", sortOrder: 1 }],
+  }),
+}));
+
 import EventRosterPage from "@/app/admin/events/[eventId]/players/page";
 
 describe("player admin pages", () => {
@@ -15,6 +29,7 @@ describe("player admin pages", () => {
     const ui = await EventRosterPage({ params: Promise.resolve({ eventId: "event_1" }) });
     render(ui);
     expect(screen.getByRole("heading", { name: "Event roster" })).toBeInTheDocument();
-    expect(screen.getByText("Event ID: event_1")).toBeInTheDocument();
+    expect(screen.getByText("Event: Friday Americano • 1 players registered")).toBeInTheDocument();
+    expect(screen.getByText("Alice")).toBeInTheDocument();
   });
 });

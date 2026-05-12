@@ -23,7 +23,7 @@ export type EventRecord = {
   updatedAt: Date;
 };
 
-export type UpdateEventInput = Partial<Pick<ValidCreateEventInput, "name" | "description" | "eventDate" | "venueName" | "venueAddress" | "courtCount" | "scoreTarget" | "roundCount" | "autoRefreshSeconds">>;
+export type UpdateEventInput = Partial<Pick<ValidCreateEventInput, "name" | "description" | "eventDate" | "venueName" | "venueAddress" | "courtCount" | "scoreTarget" | "roundCount" | "autoRefreshSeconds">> & Partial<Pick<EventRecord, "scheduleGenerated">>;
 
 export type EventStore = {
   createEvent(input: ValidCreateEventInput & { publicSlug: string }): Promise<EventRecord>;

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { LoginForm } from "@/features/auth/login-form";
 
 export default function AdminLoginPage() {
@@ -9,7 +10,9 @@ export default function AdminLoginPage() {
         <p className="mt-2 text-slate-600">
           Enter your admin credentials to manage events.
         </p>
-        <LoginForm />
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
       </div>
     </main>
   );

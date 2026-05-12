@@ -11,6 +11,7 @@ export type RoundRecord = CreateRoundInput & {
 };
 
 export type CreateMatchInput = Omit<MatchRecord, "id" | "updatedAt" | "status" | "teamOneScore" | "teamTwoScore" | "scoreOverrideWarning" | "abandonedCountsTowardLeaderboard"> & {
+  roundId?: string | null;
   status?: MatchStatus;
   teamOneScore?: number | null;
   teamTwoScore?: number | null;

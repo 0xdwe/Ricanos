@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
 import { format } from "date-fns";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   const store = createDrizzleEventStore();
   const events = await store.listEvents();
