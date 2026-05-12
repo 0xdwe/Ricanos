@@ -57,10 +57,7 @@ export function CreateEventForm() {
           Score target
           <input className="rounded-lg border border-slate-300 px-3 py-2" name="scoreTarget" type="number" min={1} defaultValue={24} />
         </label>
-        <label className="grid gap-2 font-medium">
-          Round count
-          <input className="rounded-lg border border-slate-300 px-3 py-2" name="roundCount" type="number" min={1} defaultValue={6} />
-        </label>
+        <input type="hidden" name="roundCount" value={6} />
       </div>
       <div className="mt-4 flex items-center justify-between">
         <Link href="/admin" className="text-slate-600 hover:text-slate-900 font-medium">

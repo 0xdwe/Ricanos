@@ -27,6 +27,7 @@ describe("admin event pages", () => {
     expect(screen.getByLabelText("Event name")).toBeInTheDocument();
     expect(screen.getByLabelText("Format")).toBeInTheDocument();
     expect(screen.getByLabelText("Pairing mode")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Round count")).not.toBeInTheDocument();
   });
 
   it("renders event settings shell", async () => {

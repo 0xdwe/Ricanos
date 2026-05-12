@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { createDb } from "@/lib/db";
 import { matches, rounds } from "@/lib/db/schema";
 import type { MatchRecord } from "./match-model";
-import type { CreateMatchInput, CreateRoundInput, MatchStore, RoundRecord, ScoreUpdateInput, StatusUpdateInput } from "./match-store";
+import type { CreateMatchInput, CreateRoundInput, MatchStore, ParticipantUpdateInput, RoundRecord, ScoreUpdateInput, StatusUpdateInput } from "./match-store";
 
 type Db = ReturnType<typeof createDb>;
 
@@ -52,6 +52,10 @@ export function createDrizzleMatchStore(db: Db = createDb()): MatchStore {
       return row ? mapMatch(row) : null;
     },
     async updateStatus(id: string, input: StatusUpdateInput) {
+      const [row] = await db.update(matches).set({ ...input, updatedAt: new Date() }).where(eq(matches.id, id)).returning();
+      return row ? mapMatch(row) : null;
+    },
+    async updateParticipants(id: string, input: ParticipantUpdateInput) {
       const [row] = await db.update(matches).set({ ...input, updatedAt: new Date() }).where(eq(matches.id, id)).returning();
       return row ? mapMatch(row) : null;
     },

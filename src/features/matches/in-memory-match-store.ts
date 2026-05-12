@@ -1,5 +1,5 @@
 import type { MatchRecord } from "./match-model";
-import type { CreateMatchInput, CreateRoundInput, MatchStore, RoundRecord, ScoreUpdateInput, StatusUpdateInput } from "./match-store";
+import type { CreateMatchInput, CreateRoundInput, MatchStore, ParticipantUpdateInput, RoundRecord, ScoreUpdateInput, StatusUpdateInput } from "./match-store";
 
 let nextId = 1;
 
@@ -47,6 +47,13 @@ export function createInMemoryMatchStore(initialMatches: MatchRecord[] = [], ini
       return updated;
     },
     async updateStatus(matchId: string, input: StatusUpdateInput) {
+      const existing = matches.get(matchId);
+      if (!existing) return null;
+      const updated = { ...existing, ...input, updatedAt: new Date("2026-01-01T00:00:00.000Z") };
+      matches.set(matchId, updated);
+      return updated;
+    },
+    async updateParticipants(matchId: string, input: ParticipantUpdateInput) {
       const existing = matches.get(matchId);
       if (!existing) return null;
       const updated = { ...existing, ...input, updatedAt: new Date("2026-01-01T00:00:00.000Z") };

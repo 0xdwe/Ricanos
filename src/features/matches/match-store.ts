@@ -21,6 +21,7 @@ export type CreateMatchInput = Omit<MatchRecord, "id" | "updatedAt" | "status" |
 
 export type ScoreUpdateInput = Pick<MatchRecord, "teamOneScore" | "teamTwoScore" | "scoreOverrideWarning" | "status">;
 export type StatusUpdateInput = Pick<MatchRecord, "status" | "abandonedCountsTowardLeaderboard">;
+export type ParticipantUpdateInput = Pick<MatchRecord, "teamOneParticipantIds" | "teamTwoParticipantIds">;
 
 export type MatchStore = {
   createRound(input: CreateRoundInput): Promise<RoundRecord>;
@@ -29,4 +30,5 @@ export type MatchStore = {
   getMatch(id: string): Promise<MatchRecord | null>;
   updateScore(id: string, input: ScoreUpdateInput): Promise<MatchRecord | null>;
   updateStatus(id: string, input: StatusUpdateInput): Promise<MatchRecord | null>;
+  updateParticipants(id: string, input: ParticipantUpdateInput): Promise<MatchRecord | null>;
 };

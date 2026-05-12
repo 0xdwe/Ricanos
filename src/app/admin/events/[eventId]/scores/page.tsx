@@ -7,6 +7,7 @@ import type { MatchStatus } from "@/features/matches/match-model";
 import { createDrizzleMatchStore } from "@/features/matches/drizzle-match-store";
 import { createDrizzlePlayerStore } from "@/features/players/drizzle-player-store";
 import { validateRiskyAdminChanges } from "@/features/risk/risk-validation";
+import { replaceMatchParticipantFormAction } from "@/features/matches/match-participant-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -83,6 +84,7 @@ export default async function EventScoresPage({ params }: EventScoresPageProps) 
     createDrizzlePlayerStore().listPlayers().catch(() => []),
   ]);
   const nameById = new Map(players.map((player) => [player.id, player.displayName]));
+  const replaceParticipantAction = replaceMatchParticipantFormAction.bind(null, eventId);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 bg-slate-50 px-4 pb-24 pt-6 sm:px-6 sm:py-10">
@@ -132,6 +134,26 @@ export default async function EventScoresPage({ params }: EventScoresPageProps) 
                   {isMexicano ? <input type="hidden" name="correctionChoice" value="update_score_only" /> : null}
                 </div>
               </details>
+
+              {match.status !== "completed" && (
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                  <div className="font-semibold">Player unavailable?</div>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    {[...match.teamOneParticipantIds, ...match.teamTwoParticipantIds].map((participantId) => (
+                      <button
+                        key={participantId}
+                        formAction={replaceParticipantAction}
+                        name="participantId"
+                        value={participantId}
+                        className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-left font-medium text-amber-950 hover:bg-amber-100"
+                        type="submit"
+                      >
+                        Replace {nameById.get(participantId) ?? "Unknown player"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </form>
           ))}
         </section>
