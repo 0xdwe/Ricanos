@@ -11,7 +11,6 @@ describe("event actions", () => {
       format: "americano",
       pairingMode: "individual",
       courtCount: 2,
-      scoreTarget: 24,
       roundCount: 6,
     });
 
@@ -30,7 +29,6 @@ describe("event actions", () => {
       format: "americano",
       pairingMode: "individual",
       courtCount: 1,
-      scoreTarget: 24,
       roundCount: 6,
     });
     if (!created.ok) throw new Error("expected create to pass");
@@ -58,7 +56,6 @@ describe("event actions", () => {
       format: "americano",
       pairingMode: "individual",
       courtCount: 1,
-      scoreTarget: 24,
       roundCount: 6,
     });
     if (!created.ok) throw new Error("expected create to pass");
@@ -78,7 +75,6 @@ describe("event actions", () => {
       format: "americano",
       pairingMode: "individual",
       courtCount: 1,
-      scoreTarget: 24,
       roundCount: 6,
     });
     if (!created.ok) throw new Error("expected create to pass");

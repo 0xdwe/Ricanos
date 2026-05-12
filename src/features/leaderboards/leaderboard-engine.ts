@@ -34,7 +34,7 @@ function shouldCount(match: LeaderboardMatch): boolean {
   return false;
 }
 
-export function calculateLeaderboard({ participants, matches }: { participants: LeaderboardParticipant[]; matches: LeaderboardMatch[] }): Standing[] {
+export function calculateLeaderboard({ participants, matches, sortBy = "wins" }: { participants: LeaderboardParticipant[]; matches: LeaderboardMatch[], sortBy?: "wins" | "points" }): Standing[] {
   const standings = new Map<string, Standing>();
 
   for (const participant of participants) {
@@ -78,14 +78,27 @@ export function calculateLeaderboard({ participants, matches }: { participants: 
       averagePointDifference: standing.played === 0 ? 0 : roundMetric((standing.totalPoints - standing.pointsAgainst) / standing.played),
       winRate: standing.played === 0 ? 0 : roundMetric(standing.wins / standing.played),
     }))
-    .sort((a, b) =>
-      b.wins - a.wins ||
-      b.totalPoints - a.totalPoints ||
-      b.pointDifference - a.pointDifference ||
-      b.winRate - a.winRate ||
-      a.losses - b.losses ||
-      a.displayName.localeCompare(b.displayName),
-    )
+    .sort((a, b) => {
+      if (sortBy === "points") {
+        return (
+          b.totalPoints - a.totalPoints ||
+          b.pointDifference - a.pointDifference ||
+          b.wins - a.wins ||
+          b.winRate - a.winRate ||
+          a.losses - b.losses ||
+          a.displayName.localeCompare(b.displayName)
+        );
+      } else {
+        return (
+          b.wins - a.wins ||
+          b.totalPoints - a.totalPoints ||
+          b.pointDifference - a.pointDifference ||
+          b.winRate - a.winRate ||
+          a.losses - b.losses ||
+          a.displayName.localeCompare(b.displayName)
+        );
+      }
+    })
     .map((standing, index) => ({ ...standing, rank: index + 1 }));
 }
 

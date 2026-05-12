@@ -15,7 +15,6 @@ const formSchema = z.object({
   format: z.enum(["americano", "mexicano"]),
   pairingMode: z.enum(["individual", "fixed_team"]),
   courtCount: z.coerce.number().min(1, "Must have at least 1 court"),
-  scoreTarget: z.coerce.number().min(1, "Score target must be positive"),
   roundCount: z.coerce.number().min(1, "Round count must be positive"),
 });
 
@@ -29,7 +28,6 @@ function parseEventForm(formData: FormData) {
     format: formData.get("format")?.toString() || "americano",
     pairingMode: formData.get("pairingMode")?.toString() || "individual",
     courtCount: formData.get("courtCount")?.toString(),
-    scoreTarget: formData.get("scoreTarget")?.toString(),
     roundCount: formData.get("roundCount")?.toString(),
   });
 }

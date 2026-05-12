@@ -25,7 +25,7 @@ export function buildLeaderboardExportCsv(standings: Standing[]): string {
 
 export function buildMatchesExportCsv(matches: MatchRecord[], participantLabels: Map<string, string>): string {
   return toCsv([
-    ["match_id", "round_number", "court_number", "status", "team_one", "team_two", "team_one_score", "team_two_score", "score_target", "score_override_warning", "abandoned_counts_toward_leaderboard", "updated_at"],
+    ["match_id", "round_number", "court_number", "status", "team_one", "team_two", "team_one_score", "team_two_score", "abandoned_counts_toward_leaderboard", "updated_at"],
     ...matches.map((match) => [
       match.id,
       match.roundNumber,
@@ -35,8 +35,6 @@ export function buildMatchesExportCsv(matches: MatchRecord[], participantLabels:
       formatParticipants(match.teamTwoParticipantIds, participantLabels),
       match.teamOneScore,
       match.teamTwoScore,
-      match.scoreTarget,
-      match.scoreOverrideWarning,
       match.abandonedCountsTowardLeaderboard,
       match.updatedAt.toISOString(),
     ]),
@@ -62,7 +60,7 @@ export function buildScoresExportCsv(matches: MatchRecord[], participantLabels: 
 
 export function buildEventExportCsv(event: EventRecord): string {
   return toCsv([
-    ["event_id", "name", "public_slug", "status", "format", "pairing_mode", "event_date", "venue_name", "venue_address", "court_count", "courts", "score_target", "round_count", "auto_refresh_seconds", "schedule_generated", "created_at", "updated_at"],
+    ["event_id", "name", "public_slug", "status", "format", "pairing_mode", "event_date", "venue_name", "venue_address", "court_count", "courts", "round_count", "auto_refresh_seconds", "schedule_generated", "created_at", "updated_at"],
     [
       event.id,
       event.name,
@@ -75,7 +73,6 @@ export function buildEventExportCsv(event: EventRecord): string {
       event.venueAddress,
       event.courtCount,
       event.courts.map((court) => court.name).join(" | "),
-      event.scoreTarget,
       event.roundCount,
       event.autoRefreshSeconds,
       event.scheduleGenerated,

@@ -11,7 +11,6 @@ describe("EditEventForm", () => {
     venueName: "Ricanos",
     venueAddress: "Main street",
     courtCount: 2,
-    scoreTarget: 24,
     roundCount: 6,
     autoRefreshSeconds: 30,
     scheduleGenerated: false,

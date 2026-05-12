@@ -28,8 +28,6 @@ vi.mock("@/features/events/event-read-model", () => ({
         teamTwoParticipantIds: ["player_3", "player_4"],
         teamOneScore: null,
         teamTwoScore: null,
-        scoreTarget: 32,
-        scoreOverrideWarning: null,
         abandonedCountsTowardLeaderboard: false,
         updatedAt: new Date(),
       },

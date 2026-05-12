@@ -10,16 +10,15 @@ export type RoundRecord = CreateRoundInput & {
   createdAt: Date;
 };
 
-export type CreateMatchInput = Omit<MatchRecord, "id" | "updatedAt" | "status" | "teamOneScore" | "teamTwoScore" | "scoreOverrideWarning" | "abandonedCountsTowardLeaderboard"> & {
+export type CreateMatchInput = Omit<MatchRecord, "id" | "updatedAt" | "status" | "teamOneScore" | "teamTwoScore" | "abandonedCountsTowardLeaderboard"> & {
   roundId?: string | null;
   status?: MatchStatus;
   teamOneScore?: number | null;
   teamTwoScore?: number | null;
-  scoreOverrideWarning?: string | null;
   abandonedCountsTowardLeaderboard?: boolean;
 };
 
-export type ScoreUpdateInput = Pick<MatchRecord, "teamOneScore" | "teamTwoScore" | "scoreOverrideWarning" | "status">;
+export type ScoreUpdateInput = Pick<MatchRecord, "teamOneScore" | "teamTwoScore" | "status">;
 export type StatusUpdateInput = Pick<MatchRecord, "status" | "abandonedCountsTowardLeaderboard">;
 export type ParticipantUpdateInput = Pick<MatchRecord, "teamOneParticipantIds" | "teamTwoParticipantIds">;
 

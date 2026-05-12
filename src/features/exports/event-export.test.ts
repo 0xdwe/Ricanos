@@ -18,7 +18,6 @@ const event: EventRecord = {
   venueName: null,
   venueAddress: null,
   courtCount: 1,
-  scoreTarget: 32,
   roundCount: 1,
   autoRefreshSeconds: null,
   scheduleGenerated: true,
@@ -44,8 +43,6 @@ const match: MatchRecord = {
   teamTwoParticipantIds: ["p3", "p4"],
   teamOneScore: 18,
   teamTwoScore: 14,
-  scoreTarget: 32,
-  scoreOverrideWarning: null,
   abandonedCountsTowardLeaderboard: false,
   updatedAt: now,
 };

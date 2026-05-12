@@ -62,19 +62,12 @@ export function EditEventForm({ event }: { event: EventRecord }) {
         {event.scheduleGenerated && (
           <input type="hidden" name="pairingMode" value={event.pairingMode} />
         )}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <label className="grid gap-2 font-medium">
             Court count
             <input className="rounded-lg border border-slate-300 px-3 py-2" name="courtCount" type="number" min={1} defaultValue={event.courtCount} />
           </label>
-          <label className="grid gap-2 font-medium">
-            Score target
-            <input className="rounded-lg border border-slate-300 px-3 py-2" name="scoreTarget" type="number" min={1} defaultValue={event.scoreTarget} />
-          </label>
-          <label className="grid gap-2 font-medium">
-            Round count
-            <input className="rounded-lg border border-slate-300 px-3 py-2" name="roundCount" type="number" min={1} defaultValue={event.roundCount} />
-          </label>
+          <input type="hidden" name="roundCount" value={event.roundCount} />
         </div>
 
         <button className="rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50" type="submit" disabled={isPending}>

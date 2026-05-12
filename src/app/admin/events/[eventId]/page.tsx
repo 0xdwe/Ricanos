@@ -49,21 +49,17 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link href={`/admin/events/${event.id}/players`} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:border-blue-400 hover:shadow-md transition">
               <h3 className="font-bold text-lg">1. Roster</h3>
               <p className="mt-1 text-sm text-slate-500">Manage players and teams</p>
             </Link>
-            <Link href={`/admin/events/${event.id}/schedule/${event.format}`} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:border-blue-400 hover:shadow-md transition">
-              <h3 className="font-bold text-lg">2. Schedule</h3>
-              <p className="mt-1 text-sm text-slate-500">Generate or edit rounds</p>
-            </Link>
             <Link href={`/admin/events/${event.id}/scores`} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:border-blue-400 hover:shadow-md transition">
-              <h3 className="font-bold text-lg">3. Scores</h3>
+              <h3 className="font-bold text-lg">2. Scores</h3>
               <p className="mt-1 text-sm text-slate-500">Enter match results</p>
             </Link>
             <Link href={`/admin/events/${event.id}/leaderboard`} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:border-blue-400 hover:shadow-md transition">
-              <h3 className="font-bold text-lg">4. Leaderboard</h3>
+              <h3 className="font-bold text-lg">3. Leaderboard</h3>
               <p className="mt-1 text-sm text-slate-500">View current standings</p>
             </Link>
           </div>

@@ -19,7 +19,6 @@ function mapEvent(row: typeof events.$inferSelect, courtRows: (typeof courts.$in
     venueName: row.venueName,
     venueAddress: row.venueAddress,
     courtCount: row.courtCount,
-    scoreTarget: row.scoreTarget,
     roundCount: row.roundCount,
     autoRefreshSeconds: row.autoRefreshSeconds,
     scheduleGenerated: row.scheduleGenerated,

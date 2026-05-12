@@ -47,7 +47,6 @@ describe("loadEventReadModel", () => {
       format: "americano",
       pairingMode: "individual",
       courtCount: 2,
-      scoreTarget: 24,
       roundCount: 6,
       autoRefreshSeconds: null,
       publicSlug: "test-event-abc",
@@ -65,7 +64,6 @@ describe("loadEventReadModel", () => {
       courtNumber: 1,
       teamOneParticipantIds: [alice.id],
       teamTwoParticipantIds: [bob.id],
-      scoreTarget: 24,
     });
 
     const result = await loadEventReadModel(event.id);
@@ -94,7 +92,6 @@ describe("loadEventReadModel", () => {
       format: "americano",
       pairingMode: "fixed_team",
       courtCount: 2,
-      scoreTarget: 24,
       roundCount: 6,
       autoRefreshSeconds: null,
       publicSlug: "test-event-abc",
@@ -121,7 +118,6 @@ describe("loadEventReadModel", () => {
       format: "americano",
       pairingMode: "individual",
       courtCount: 2,
-      scoreTarget: 24,
       roundCount: 6,
       autoRefreshSeconds: null,
       publicSlug: "test-event-abc",

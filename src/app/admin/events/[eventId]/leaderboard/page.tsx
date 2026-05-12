@@ -4,10 +4,15 @@ import { calculateLeaderboard } from "@/features/leaderboards/leaderboard-engine
 import { buildLeaderboardMatches } from "@/features/matches/match-model";
 import { notFound } from "next/navigation";
 
-type EventLeaderboardPageProps = { params: Promise<{ eventId: string }> };
+type EventLeaderboardPageProps = { 
+  params: Promise<{ eventId: string }>;
+  searchParams?: Promise<{ sort?: string }>;
+};
 
-export default async function EventLeaderboardPage({ params }: EventLeaderboardPageProps) {
+export default async function EventLeaderboardPage({ params, searchParams }: EventLeaderboardPageProps) {
   const { eventId } = await params;
+  const { sort } = (await searchParams) ?? {};
+  const sortBy = sort === "points" ? "points" : "wins";
   
   const readModel = await loadEventReadModel(eventId);
   if (!readModel) notFound();
@@ -15,7 +20,8 @@ export default async function EventLeaderboardPage({ params }: EventLeaderboardP
   const { event, participants } = readModel;
   const standings = calculateLeaderboard({ 
     participants, 
-    matches: buildLeaderboardMatches(readModel.matches) 
+    matches: buildLeaderboardMatches(readModel.matches),
+    sortBy 
   });
 
   return (
@@ -26,9 +32,27 @@ export default async function EventLeaderboardPage({ params }: EventLeaderboardP
             &larr; Back to Event Dashboard
           </Link>
         </div>
-        <p className="text-sm font-medium uppercase tracking-wide text-blue-700">Admin</p>
-        <h1 className="text-3xl font-bold">Leaderboard</h1>
-        <p className="mt-2 text-slate-600">Event: {event.name}</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium uppercase tracking-wide text-blue-700">Admin</p>
+            <h1 className="text-3xl font-bold">Leaderboard</h1>
+            <p className="mt-2 text-slate-600">Event: {event.name}</p>
+          </div>
+          <div className="flex gap-2">
+            <Link 
+              href={`/admin/events/${eventId}/leaderboard?sort=wins`}
+              className={`rounded-lg px-4 py-2 text-sm font-medium ${sortBy === 'wins' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+            >
+              By Wins
+            </Link>
+            <Link 
+              href={`/admin/events/${eventId}/leaderboard?sort=points`}
+              className={`rounded-lg px-4 py-2 text-sm font-medium ${sortBy === 'points' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+            >
+              By Points
+            </Link>
+          </div>
+        </div>
       </div>
       
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">

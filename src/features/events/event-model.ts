@@ -11,7 +11,6 @@ export type CreateEventInput = {
   format?: unknown;
   pairingMode?: unknown;
   courtCount?: unknown;
-  scoreTarget?: unknown;
   roundCount?: unknown;
   autoRefreshSeconds?: unknown;
 };
@@ -25,7 +24,6 @@ export type ValidCreateEventInput = {
   format: EventFormat;
   pairingMode: PairingMode;
   courtCount: number;
-  scoreTarget: number;
   roundCount: number;
   autoRefreshSeconds: number | null;
 };
@@ -58,7 +56,6 @@ export function validateCreateEventInput(input: CreateEventInput): ValidationRes
   const errors: FieldError[] = [];
   const name = requiredString(input.name);
   const courtCount = positiveInteger(input.courtCount);
-  const scoreTarget = positiveInteger(input.scoreTarget);
   const roundCount = positiveInteger(input.roundCount);
   const autoRefreshSeconds = input.autoRefreshSeconds === "" || input.autoRefreshSeconds == null ? null : positiveInteger(input.autoRefreshSeconds);
 
@@ -66,13 +63,12 @@ export function validateCreateEventInput(input: CreateEventInput): ValidationRes
   if (!formats.includes(input.format as EventFormat)) errors.push({ field: "format", message: "Format must be Americano or Mexicano" });
   if (!pairingModes.includes(input.pairingMode as PairingMode)) errors.push({ field: "pairingMode", message: "Pairing mode must be individual or fixed-team" });
   if (!courtCount) errors.push({ field: "courtCount", message: "Court count must be at least 1" });
-  if (!scoreTarget) errors.push({ field: "scoreTarget", message: "Score target must be at least 1" });
   if (!roundCount) errors.push({ field: "roundCount", message: "Round count must be at least 1" });
   if (input.autoRefreshSeconds !== undefined && input.autoRefreshSeconds !== null && input.autoRefreshSeconds !== "" && !autoRefreshSeconds) {
     errors.push({ field: "autoRefreshSeconds", message: "Auto-refresh seconds must be at least 1" });
   }
 
-  if (errors.length > 0 || !name || !courtCount || !scoreTarget || !roundCount) {
+  if (errors.length > 0 || !name || !courtCount || !roundCount) {
     return { ok: false, errors };
   }
 
@@ -87,7 +83,6 @@ export function validateCreateEventInput(input: CreateEventInput): ValidationRes
       format: input.format as EventFormat,
       pairingMode: input.pairingMode as PairingMode,
       courtCount,
-      scoreTarget,
       roundCount,
       autoRefreshSeconds,
     },
@@ -121,7 +116,7 @@ export function getNextEventStatuses(status: EventStatus): EventStatus[] {
 export function getEditableEventFields({ scheduleGenerated }: { status: EventStatus; scheduleGenerated: boolean }) {
   const safe = ["name", "description", "eventDate", "venueName", "venueAddress", "autoRefreshSeconds"];
   if (!scheduleGenerated) {
-    return { safe, risky: ["courtCount", "scoreTarget", "roundCount"], locked: [] };
+    return { safe, risky: ["courtCount", "roundCount"], locked: [] };
   }
-  return { safe, risky: ["courtCount", "scoreTarget", "roundCount"], locked: ["format", "pairingMode"] };
+  return { safe, risky: ["courtCount", "roundCount"], locked: ["format", "pairingMode"] };
 }

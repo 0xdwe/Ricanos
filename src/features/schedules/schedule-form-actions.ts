@@ -5,8 +5,14 @@ import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
 import { createDrizzleMatchStore } from "@/features/matches/drizzle-match-store";
 import { createDrizzlePlayerStore } from "@/features/players/drizzle-player-store";
 import { createDrizzleAuditLogStore } from "@/features/audit/drizzle-audit-log-store";
+import { createDrizzleTeamStore } from "@/features/teams/drizzle-team-store";
 import { generateAmericanoSchedule } from "@/features/schedules/americano-scheduler";
+import { generateMexicanoIndividualRound } from "@/features/schedules/mexicano-individual-scheduler";
+import { generateMexicanoTeamRound } from "@/features/schedules/mexicano-team-scheduler";
+import { generateTeamRoundRobinSchedule } from "@/features/schedules/team-round-robin-scheduler";
 import { recordAuditEntry } from "@/features/audit/audit-log";
+import { calculateLeaderboard } from "@/features/leaderboards/leaderboard-engine";
+import { buildLeaderboardMatches } from "@/features/matches/match-model";
 import { randomBytes } from "crypto";
 
 const DEFAULT_MATCH_BATCH_SIZE = 6;
@@ -82,7 +88,6 @@ export async function generateScheduleFormAction(eventId: string, prevState: any
             courtNumber: match.courtNumber,
             teamOneParticipantIds: match.teamOnePlayerIds,
             teamTwoParticipantIds: match.teamTwoPlayerIds,
-            scoreTarget: event.scoreTarget,
             status: "scheduled"
           });
         }
@@ -110,5 +115,99 @@ export async function generateScheduleFormAction(eventId: string, prevState: any
     return { error: "Unknown action" };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to generate schedule" };
+  }
+}
+
+export async function generateSingleMatchAction(eventId: string) {
+  try {
+    const store = createDrizzleEventStore();
+    const event = await store.getEvent(eventId);
+    if (!event) return { error: "Event not found" };
+
+    const playerStore = createDrizzlePlayerStore();
+    const matchStore = createDrizzleMatchStore();
+    const [roster, existingMatches] = await Promise.all([playerStore.listRoster(eventId), matchStore.listMatches(eventId)]);
+
+    const players = await playerStore.listPlayers();
+    const playerById = new Map(players.map((p) => [p.id, p]));
+
+    const schedulePlayers = roster.map(r => {
+      const p = playerById.get(r.playerId);
+      return p ? { id: p.id, displayName: p.displayName } : null;
+    }).filter((p): p is { id: string; displayName: string } => p !== null);
+
+    const startRoundNumber = existingMatches.length > 0 ? Math.max(...existingMatches.map((match) => match.roundNumber)) + 1 : 1;
+    const auditStore = createDrizzleAuditLogStore();
+    let createdCount = 0;
+
+    if (event.pairingMode === "individual") {
+      if (schedulePlayers.length < 4) return { error: "Need at least 4 players to generate a match." };
+      const standings = calculateLeaderboard({ participants: schedulePlayers, matches: buildLeaderboardMatches(existingMatches) });
+      const rankById = new Map(standings.map((standing, index) => [standing.participantId, index + 1]));
+      const rankedPlayers = schedulePlayers.map((player, index) => ({ ...player, rank: rankById.get(player.id) ?? index + 1 }));
+      const round = event.format === "mexicano"
+        ? generateMexicanoIndividualRound({ players: rankedPlayers, courtCount: 1, roundNumber: startRoundNumber })
+        : generateAmericanoSchedule({ players: schedulePlayers, courtCount: 1, roundCount: 1, seed: `${randomBytes(4).toString("hex")}-${startRoundNumber}` }).rounds[0];
+
+      const savedRound = await matchStore.createRound({ eventId, roundNumber: startRoundNumber });
+      for (const match of round.matches.slice(0, 1)) {
+        await matchStore.createMatch({
+          eventId,
+          roundId: savedRound.id,
+          roundNumber: startRoundNumber,
+          courtNumber: 1,
+          teamOneParticipantIds: match.teamOnePlayerIds,
+          teamTwoParticipantIds: match.teamTwoPlayerIds,
+          status: "scheduled",
+        });
+        createdCount += 1;
+      }
+    } else {
+      const teamStore = createDrizzleTeamStore();
+      const teams = await teamStore.listTeams(eventId);
+      if (teams.length < 2) return { error: "Need at least 2 teams to generate a match." };
+      const teamParticipants = teams.map((team) => ({ id: team.id, displayName: team.displayName }));
+      const standings = calculateLeaderboard({ participants: teamParticipants, matches: buildLeaderboardMatches(existingMatches) });
+      const rankById = new Map(standings.map((standing, index) => [standing.participantId, index + 1]));
+      const rankedTeams = teamParticipants.map((team, index) => ({ ...team, rank: rankById.get(team.id) ?? index + 1 }));
+      const round = event.format === "mexicano"
+        ? generateMexicanoTeamRound({ teams: rankedTeams, courtCount: 1, roundNumber: startRoundNumber })
+        : generateTeamRoundRobinSchedule({ teams: teamParticipants, courtCount: 1, roundCount: 1, seed: `${randomBytes(4).toString("hex")}-${startRoundNumber}` }).rounds[0];
+
+      const savedRound = await matchStore.createRound({ eventId, roundNumber: startRoundNumber });
+      for (const match of round.matches.slice(0, 1)) {
+        await matchStore.createMatch({
+          eventId,
+          roundId: savedRound.id,
+          roundNumber: startRoundNumber,
+          courtNumber: 1,
+          teamOneParticipantIds: [match.teamOneId],
+          teamTwoParticipantIds: [match.teamTwoId],
+          status: "scheduled",
+        });
+        createdCount += 1;
+      }
+    }
+
+    await store.updateEvent(eventId, { scheduleGenerated: true });
+    if (event.status === "draft" || event.status === "ready") {
+      await store.updateStatus(eventId, "live");
+    }
+
+    await recordAuditEntry(auditStore, {
+      actionType: "schedule_generated",
+      actorId: null,
+      eventId,
+      entityKind: "schedule",
+      entityId: eventId,
+      summary: `Generated ${createdCount} new match${createdCount === 1 ? "" : "es"}`,
+    });
+
+    revalidatePath(`/admin/events/${eventId}/scores`);
+    revalidatePath(`/admin/events/${eventId}/leaderboard`);
+    if (event.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to generate match" };
   }
 }

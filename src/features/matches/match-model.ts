@@ -13,8 +13,6 @@ export type MatchRecord = {
   teamTwoParticipantIds: string[];
   teamOneScore: number | null;
   teamTwoScore: number | null;
-  scoreTarget: number;
-  scoreOverrideWarning: string | null;
   abandonedCountsTowardLeaderboard: boolean;
   updatedAt: Date;
 };
@@ -22,20 +20,9 @@ export type MatchRecord = {
 export type MatchValidationError = { field: string; message: string };
 export type MatchActionResult = { ok: true; match: MatchRecord } | { ok: false; errors: MatchValidationError[] };
 
-export function validateFixedTargetScore(input: { teamOneScore: number; teamTwoScore: number; scoreTarget: number; overrideConfirmed: boolean }): { ok: boolean; warning: string | null } {
-  const total = input.teamOneScore + input.teamTwoScore;
-  if (total === input.scoreTarget) return { ok: true, warning: null };
-
-  const warning = `Score total ${total} does not match target ${input.scoreTarget}`;
-  return { ok: input.overrideConfirmed, warning };
-}
-
-export function recordScore(match: MatchRecord, input: { teamOneScore: number; teamTwoScore: number; overrideConfirmed: boolean }): MatchActionResult {
+export function recordScore(match: MatchRecord, input: { teamOneScore: number; teamTwoScore: number }): MatchActionResult {
   if (!Number.isInteger(input.teamOneScore) || input.teamOneScore < 0) return { ok: false, errors: [{ field: "teamOneScore", message: "Team one score must be a non-negative whole number" }] };
   if (!Number.isInteger(input.teamTwoScore) || input.teamTwoScore < 0) return { ok: false, errors: [{ field: "teamTwoScore", message: "Team two score must be a non-negative whole number" }] };
-
-  const validation = validateFixedTargetScore({ ...input, scoreTarget: match.scoreTarget });
-  if (!validation.ok) return { ok: false, errors: [{ field: "score", message: validation.warning ?? "Invalid score" }] };
 
   return {
     ok: true,
@@ -44,7 +31,6 @@ export function recordScore(match: MatchRecord, input: { teamOneScore: number; t
       status: "completed",
       teamOneScore: input.teamOneScore,
       teamTwoScore: input.teamTwoScore,
-      scoreOverrideWarning: validation.warning,
       updatedAt: new Date(),
     },
   };

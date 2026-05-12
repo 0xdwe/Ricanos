@@ -28,7 +28,6 @@ export const events = pgTable("events", {
   venueName: text("venue_name"),
   venueAddress: text("venue_address"),
   courtCount: integer("court_count").notNull(),
-  scoreTarget: integer("score_target").notNull(),
   roundCount: integer("round_count").notNull(),
   autoRefreshSeconds: integer("auto_refresh_seconds"),
   scheduleGenerated: boolean("schedule_generated").notNull().default(false),
@@ -93,8 +92,6 @@ export const matches = pgTable("matches", {
   teamTwoParticipantIds: jsonb("team_two_participant_ids").$type<string[]>().notNull(),
   teamOneScore: integer("team_one_score"),
   teamTwoScore: integer("team_two_score"),
-  scoreTarget: integer("score_target").notNull(),
-  scoreOverrideWarning: text("score_override_warning"),
   abandonedCountsTowardLeaderboard: boolean("abandoned_counts_toward_leaderboard").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

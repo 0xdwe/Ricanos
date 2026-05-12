@@ -16,8 +16,6 @@ const baseMatch: MatchRecord = {
   teamTwoParticipantIds: ["p3", "p4"],
   teamOneScore: 12,
   teamTwoScore: 12,
-  scoreTarget: 24,
-  scoreOverrideWarning: null,
   abandonedCountsTowardLeaderboard: false,
   updatedAt: new Date("2026-01-01T00:00:00.000Z"),
 };

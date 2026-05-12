@@ -14,7 +14,6 @@ vi.mock("@/features/events/drizzle-event-store", () => ({
       pairingMode: "individual",
       courtCount: 1,
       roundCount: 2,
-      scoreTarget: 32,
     }),
     updateEvent: vi.fn(),
     updateStatus: vi.fn(),

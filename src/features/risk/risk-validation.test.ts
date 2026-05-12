@@ -8,7 +8,6 @@ const baseMatch: RiskMatch = {
   status: "scheduled",
   teamOneParticipantIds: ["p1", "p2"],
   teamTwoParticipantIds: ["p3", "p4"],
-  scoreTarget: 24,
 };
 
 describe("risk validation", () => {
@@ -35,7 +34,7 @@ describe("risk validation", () => {
     expect(result.warnings).toContainEqual(expect.objectContaining({ code: "live_match_player_change" }));
   });
 
-  it("warns about duplicate participants, wrong counts, court conflicts, fixed team violations, and score target mismatches", () => {
+  it("warns about duplicate participants, wrong counts, court conflicts, and fixed team violations", () => {
     const result = validateRiskyAdminChanges({
       pairingMode: "fixed_team",
       fixedTeams: [{ id: "team_1", playerIds: ["p1", "p2"] }, { id: "team_2", playerIds: ["p3", "p4"] }],
@@ -46,7 +45,7 @@ describe("risk validation", () => {
     });
 
     expect(result.canSave).toBe(false);
-    expect(result.warnings.map((warning) => warning.code)).toEqual(expect.arrayContaining(["duplicate_participant", "wrong_player_count", "court_conflict", "fixed_team_violation", "score_target_mismatch"]));
+    expect(result.warnings.map((warning) => warning.code)).toEqual(expect.arrayContaining(["duplicate_participant", "wrong_player_count", "court_conflict", "fixed_team_violation"]));
   });
 
   it("allows force-save when override is confirmed", () => {

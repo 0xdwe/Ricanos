@@ -17,7 +17,6 @@ describe("event-model", () => {
       format: "americano",
       pairingMode: "individual",
       courtCount: 3,
-      scoreTarget: 24,
       roundCount: 6,
       autoRefreshSeconds: 60,
     });
@@ -35,7 +34,6 @@ describe("event-model", () => {
       format: "tennis",
       pairingMode: "mixed",
       courtCount: 0,
-      scoreTarget: 0,
       roundCount: 0,
       autoRefreshSeconds: -1,
     });
@@ -46,7 +44,6 @@ describe("event-model", () => {
       expect(result.errors).toContainEqual({ field: "format", message: "Format must be Americano or Mexicano" });
       expect(result.errors).toContainEqual({ field: "pairingMode", message: "Pairing mode must be individual or fixed-team" });
       expect(result.errors).toContainEqual({ field: "courtCount", message: "Court count must be at least 1" });
-      expect(result.errors).toContainEqual({ field: "scoreTarget", message: "Score target must be at least 1" });
       expect(result.errors).toContainEqual({ field: "roundCount", message: "Round count must be at least 1" });
     }
   });
@@ -67,7 +64,7 @@ describe("event-model", () => {
   it("classifies safe, risky, and locked fields", () => {
     expect(getEditableEventFields({ status: "live", scheduleGenerated: true })).toEqual({
       safe: ["name", "description", "eventDate", "venueName", "venueAddress", "autoRefreshSeconds"],
-      risky: ["courtCount", "scoreTarget", "roundCount"],
+      risky: ["courtCount", "roundCount"],
       locked: ["format", "pairingMode"],
     });
   });

@@ -33,6 +33,7 @@ export function buildPublicDashboard(input: {
   teams: TeamRecord[];
   matches: MatchRecord[];
   query?: string | null;
+  sortBy?: "wins" | "points";
 }): PublicDashboardData {
   const query = (input.query ?? "").trim();
   const normalizedQuery = query.toLocaleLowerCase();
@@ -46,7 +47,7 @@ export function buildPublicDashboard(input: {
         .map((player) => ({ id: player.id, displayName: player.displayName }));
 
   const participantLabels = new Map(participants.map((participant) => [participant.id, participant.displayName]));
-  const standings = calculateLeaderboard({ participants, matches: buildLeaderboardMatches(input.matches) }).map((standing) => ({
+  const standings = calculateLeaderboard({ participants, matches: buildLeaderboardMatches(input.matches), sortBy: input.sortBy }).map((standing) => ({
     ...standing,
     highlighted: matchesQuery(standing.displayName, normalizedQuery),
   }));

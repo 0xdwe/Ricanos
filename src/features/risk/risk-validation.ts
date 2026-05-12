@@ -5,8 +5,7 @@ export type RiskWarningCode =
   | "duplicate_participant"
   | "wrong_player_count"
   | "court_conflict"
-  | "fixed_team_violation"
-  | "score_target_mismatch";
+  | "fixed_team_violation";
 
 export type RiskWarning = {
   code: RiskWarningCode;
@@ -22,7 +21,7 @@ export type RiskValidationResult = {
   canSave: boolean;
 };
 
-export type RiskMatch = Pick<MatchRecord, "id" | "roundNumber" | "courtNumber" | "status" | "teamOneParticipantIds" | "teamTwoParticipantIds" | "scoreTarget"> & {
+export type RiskMatch = Pick<MatchRecord, "id" | "roundNumber" | "courtNumber" | "status" | "teamOneParticipantIds" | "teamTwoParticipantIds"> & {
   teamOneScore?: number | null;
   teamTwoScore?: number | null;
 };
@@ -50,13 +49,6 @@ export function validateRiskyAdminChanges(input: {
 
     if (participants.length !== 4 || match.teamOneParticipantIds.length !== 2 || match.teamTwoParticipantIds.length !== 2) {
       warnings.push({ code: "wrong_player_count", message: "A padel match should have two participants per team and four participants total", matchId: match.id, roundNumber: match.roundNumber, courtNumber: match.courtNumber });
-    }
-
-    if (typeof match.teamOneScore === "number" && typeof match.teamTwoScore === "number") {
-      const total = match.teamOneScore + match.teamTwoScore;
-      if (total !== match.scoreTarget) {
-        warnings.push({ code: "score_target_mismatch", message: `Score total ${total} does not match target ${match.scoreTarget}`, matchId: match.id, roundNumber: match.roundNumber, courtNumber: match.courtNumber });
-      }
     }
 
     const original = originalById.get(match.id);

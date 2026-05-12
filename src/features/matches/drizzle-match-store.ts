@@ -18,8 +18,6 @@ function mapMatch(row: typeof matches.$inferSelect): MatchRecord {
     teamTwoParticipantIds: row.teamTwoParticipantIds,
     teamOneScore: row.teamOneScore,
     teamTwoScore: row.teamTwoScore,
-    scoreTarget: row.scoreTarget,
-    scoreOverrideWarning: row.scoreOverrideWarning,
     abandonedCountsTowardLeaderboard: row.abandonedCountsTowardLeaderboard,
     updatedAt: row.updatedAt,
   };

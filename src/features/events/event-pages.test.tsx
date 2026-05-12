@@ -12,7 +12,6 @@ vi.mock("@/features/events/drizzle-event-store", () => ({
       format: "americano",
       pairingMode: "individual",
       courtCount: 2,
-      scoreTarget: 32,
       roundCount: 4,
     }),
   }),

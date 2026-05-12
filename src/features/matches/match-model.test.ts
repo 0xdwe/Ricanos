@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLeaderboardMatches, recordScore, transitionMatchStatus, validateFixedTargetScore, type MatchRecord } from "./match-model";
+import { buildLeaderboardMatches, recordScore, transitionMatchStatus, type MatchRecord } from "./match-model";
 
 const baseMatch: MatchRecord = {
   id: "match_1",
@@ -12,51 +12,28 @@ const baseMatch: MatchRecord = {
   teamTwoParticipantIds: ["p2", "p3"],
   teamOneScore: null,
   teamTwoScore: null,
-  scoreTarget: 24,
-  scoreOverrideWarning: null,
   abandonedCountsTowardLeaderboard: false,
   updatedAt: new Date("2026-01-01T00:00:00.000Z"),
 };
 
 describe("match score domain", () => {
-  it("validates fixed target totals", () => {
-    expect(validateFixedTargetScore({ teamOneScore: 14, teamTwoScore: 10, scoreTarget: 24, overrideConfirmed: false })).toEqual({ ok: true, warning: null });
-    expect(validateFixedTargetScore({ teamOneScore: 12, teamTwoScore: 8, scoreTarget: 24, overrideConfirmed: false })).toEqual({
-      ok: false,
-      warning: "Score total 20 does not match target 24",
-    });
-    expect(validateFixedTargetScore({ teamOneScore: 12, teamTwoScore: 8, scoreTarget: 24, overrideConfirmed: true })).toEqual({
-      ok: true,
-      warning: "Score total 20 does not match target 24",
-    });
-  });
-
-  it("records scores and completes the match when totals are valid", () => {
-    const result = recordScore(baseMatch, { teamOneScore: 14, teamTwoScore: 10, overrideConfirmed: false });
+  it("records any non-negative whole-number scores and completes the match", () => {
+    const result = recordScore(baseMatch, { teamOneScore: 14, teamTwoScore: 9 });
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.match).toMatchObject({ status: "completed", teamOneScore: 14, teamTwoScore: 10, scoreOverrideWarning: null });
+      expect(result.match).toMatchObject({ status: "completed", teamOneScore: 14, teamTwoScore: 9 });
     }
   });
 
   it("rejects negative and decimal scores", () => {
-    expect(recordScore(baseMatch, { teamOneScore: -1, teamTwoScore: 25, overrideConfirmed: false })).toEqual({
+    expect(recordScore(baseMatch, { teamOneScore: -1, teamTwoScore: 25 })).toEqual({
       ok: false,
       errors: [{ field: "teamOneScore", message: "Team one score must be a non-negative whole number" }],
     });
-    expect(recordScore(baseMatch, { teamOneScore: 12.5, teamTwoScore: 11.5, overrideConfirmed: false })).toEqual({
+    expect(recordScore(baseMatch, { teamOneScore: 12.5, teamTwoScore: 11.5 })).toEqual({
       ok: false,
       errors: [{ field: "teamOneScore", message: "Team one score must be a non-negative whole number" }],
     });
-  });
-
-  it("requires override confirmation before saving an invalid target total", () => {
-    const blocked = recordScore(baseMatch, { teamOneScore: 14, teamTwoScore: 9, overrideConfirmed: false });
-    expect(blocked).toEqual({ ok: false, errors: [{ field: "score", message: "Score total 23 does not match target 24" }] });
-
-    const forced = recordScore(baseMatch, { teamOneScore: 14, teamTwoScore: 9, overrideConfirmed: true });
-    expect(forced.ok).toBe(true);
-    if (forced.ok) expect(forced.match.scoreOverrideWarning).toBe("Score total 23 does not match target 24");
   });
 
   it("supports status transitions and abandoned count/no-count behavior", () => {

@@ -3,7 +3,7 @@ import { planMexicanoScoreCorrection, type MexicanoScoreCorrectionChoice, type M
 import { recordScore, transitionMatchStatus, type MatchActionResult, type MatchRecord, type MatchStatus } from "./match-model";
 import type { MatchStore } from "./match-store";
 
-export async function scoreMatchAction(store: MatchStore, matchId: string, input: { teamOneScore: number; teamTwoScore: number; overrideConfirmed: boolean }, audit: AuditContext = {}): Promise<MatchActionResult> {
+export async function scoreMatchAction(store: MatchStore, matchId: string, input: { teamOneScore: number; teamTwoScore: number; overrideConfirmed?: boolean }, audit: AuditContext = {}): Promise<MatchActionResult> {
   const existing = await store.getMatch(matchId);
   if (!existing) return { ok: false, errors: [{ field: "matchId", message: "Match not found" }] };
 
@@ -14,7 +14,6 @@ export async function scoreMatchAction(store: MatchStore, matchId: string, input
     status: result.match.status,
     teamOneScore: result.match.teamOneScore,
     teamTwoScore: result.match.teamTwoScore,
-    scoreOverrideWarning: result.match.scoreOverrideWarning,
   });
   if (!saved) return { ok: false, errors: [{ field: "matchId", message: "Match not found" }] };
 
@@ -27,17 +26,6 @@ export async function scoreMatchAction(store: MatchStore, matchId: string, input
     summary: `Score updated to ${saved.teamOneScore}-${saved.teamTwoScore}`,
   });
 
-  if (input.overrideConfirmed && saved.scoreOverrideWarning) {
-    await recordAuditEntry(audit.store, {
-      actionType: "risky_override_confirmed",
-      actorId: audit.actorId ?? null,
-      eventId: saved.eventId,
-      entityKind: "match",
-      entityId: saved.id,
-      summary: saved.scoreOverrideWarning,
-    });
-  }
-
   return { ok: true, match: saved };
 }
 
@@ -48,7 +36,7 @@ export type MexicanoScoreCorrectionActionResult =
 export async function correctMexicanoPastScoreAction(
   store: MatchStore,
   matchId: string,
-  input: { teamOneScore: number; teamTwoScore: number; overrideConfirmed: boolean; correctionChoice?: MexicanoScoreCorrectionChoice },
+  input: { teamOneScore: number; teamTwoScore: number; overrideConfirmed?: boolean; correctionChoice?: MexicanoScoreCorrectionChoice },
   audit: AuditContext = {},
 ): Promise<MexicanoScoreCorrectionActionResult> {
   const existing = await store.getMatch(matchId);

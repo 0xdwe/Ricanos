@@ -17,7 +17,6 @@ const event: EventRecord = {
   venueName: "Ricanos Club",
   venueAddress: "Court Street",
   courtCount: 2,
-  scoreTarget: 32,
   roundCount: 3,
   autoRefreshSeconds: 15,
   scheduleGenerated: true,
@@ -56,8 +55,6 @@ const match: MatchRecord = {
   teamTwoParticipantIds: ["p3", "p4"],
   teamOneScore: 18,
   teamTwoScore: 14,
-  scoreTarget: 32,
-  scoreOverrideWarning: null,
   abandonedCountsTowardLeaderboard: false,
   updatedAt: now,
 };
@@ -76,8 +73,8 @@ describe("CSV exports", () => {
 
   it("exports matches with readable participant labels", () => {
     expect(buildMatchesExportCsv([match], new Map([["p1", "Ana"], ["p2", "Bo"], ["p3", "Cy"], ["p4", "Dee"]]))).toBe([
-      "match_id,round_number,court_number,status,team_one,team_two,team_one_score,team_two_score,score_target,score_override_warning,abandoned_counts_toward_leaderboard,updated_at",
-      'm1,1,2,completed,Ana + Bo,Cy + Dee,18,14,32,,false,2026-05-12T10:00:00.000Z',
+      "match_id,round_number,court_number,status,team_one,team_two,team_one_score,team_two_score,abandoned_counts_toward_leaderboard,updated_at",
+      'm1,1,2,completed,Ana + Bo,Cy + Dee,18,14,false,2026-05-12T10:00:00.000Z',
     ].join("\n"));
   });
 
@@ -90,8 +87,8 @@ describe("CSV exports", () => {
 
   it("exports event metadata including court names", () => {
     expect(buildEventExportCsv(event)).toBe([
-      "event_id,name,public_slug,status,format,pairing_mode,event_date,venue_name,venue_address,court_count,courts,score_target,round_count,auto_refresh_seconds,schedule_generated,created_at,updated_at",
-      'event_1,"Friday, Padel",friday-padel,live,americano,individual,2026-05-12,Ricanos Club,Court Street,2,Indoor 1 | Outdoor A,32,3,15,true,2026-05-12T10:00:00.000Z,2026-05-12T10:00:00.000Z',
+      "event_id,name,public_slug,status,format,pairing_mode,event_date,venue_name,venue_address,court_count,courts,round_count,auto_refresh_seconds,schedule_generated,created_at,updated_at",
+      'event_1,"Friday, Padel",friday-padel,live,americano,individual,2026-05-12,Ricanos Club,Court Street,2,Indoor 1 | Outdoor A,3,15,true,2026-05-12T10:00:00.000Z,2026-05-12T10:00:00.000Z',
     ].join("\n"));
   });
 });

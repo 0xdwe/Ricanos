@@ -1,7 +1,7 @@
 import { loadEventReadModelBySlug } from "@/features/events/event-read-model";
 import { buildPublicDashboard } from "./public-dashboard";
 
-export async function loadPublicDashboard(slug: string, query?: string | null) {
+export async function loadPublicDashboard(slug: string, query?: string | null, sortBy?: "wins" | "points") {
   const readModel = await loadEventReadModelBySlug(slug);
   if (!readModel) return null;
 
@@ -11,6 +11,7 @@ export async function loadPublicDashboard(slug: string, query?: string | null) {
     roster: readModel.roster, 
     teams: readModel.teams, 
     matches: readModel.matches, 
-    query 
+    query,
+    sortBy
   });
 }

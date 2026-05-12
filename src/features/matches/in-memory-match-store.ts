@@ -26,7 +26,6 @@ export function createInMemoryMatchStore(initialMatches: MatchRecord[] = [], ini
         status: input.status ?? "scheduled",
         teamOneScore: input.teamOneScore ?? null,
         teamTwoScore: input.teamTwoScore ?? null,
-        scoreOverrideWarning: input.scoreOverrideWarning ?? null,
         abandonedCountsTowardLeaderboard: input.abandonedCountsTowardLeaderboard ?? false,
         updatedAt: new Date("2026-01-01T00:00:00.000Z"),
       };
