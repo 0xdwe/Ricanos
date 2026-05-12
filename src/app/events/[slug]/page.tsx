@@ -44,7 +44,7 @@ function Dashboard({ dashboard }: { dashboard: PublicDashboardData }) {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 px-4 pb-24 pt-6 sm:px-6">
-      {dashboard.event.autoRefreshSeconds ? <script dangerouslySetInnerHTML={{ __html: `window.setTimeout(() => window.location.reload(), ${Math.max(5, dashboard.event.autoRefreshSeconds) * 1000})` }} /> : null}
+      {dashboard.event.autoRefreshSeconds ? <meta httpEquiv="refresh" content={Math.max(10, dashboard.event.autoRefreshSeconds).toString()} /> : null}
       <header className="rounded-xl bg-blue-600 p-6 text-white shadow-sm">
         <p className="text-sm font-medium uppercase tracking-wide text-blue-100">View-only public event</p>
         <h1 className="mt-2 text-3xl font-bold">{dashboard.event.name}</h1>

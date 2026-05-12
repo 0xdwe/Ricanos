@@ -33,7 +33,9 @@ async function saveMatchUpdate(formData: FormData) {
   const correctionChoice = typeof correctionChoiceValue === "string" && correctionChoiceValue.length > 0 ? (correctionChoiceValue as MexicanoScoreCorrectionChoice) : undefined;
 
   const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(matchId);
-  if (!uuidLike) return;
+  if (!uuidLike) {
+    throw new Error("Invalid match ID provided.");
+  }
 
   const existing = await store.getMatch(matchId);
   if (!existing) return;

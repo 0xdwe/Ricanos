@@ -30,5 +30,5 @@ export type MatchStore = {
   getMatch(id: string): Promise<MatchRecord | null>;
   updateScore(id: string, input: ScoreUpdateInput): Promise<MatchRecord | null>;
   updateStatus(id: string, input: StatusUpdateInput): Promise<MatchRecord | null>;
-  updateParticipants(id: string, input: ParticipantUpdateInput): Promise<MatchRecord | null>;
+  updateParticipants(id: string, input: ParticipantUpdateInput, expectedUpdatedAt?: Date): Promise<MatchRecord | null>;
 };

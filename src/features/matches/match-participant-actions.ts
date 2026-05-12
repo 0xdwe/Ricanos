@@ -27,7 +27,8 @@ export async function replaceMatchParticipantForTest(eventId: string, formData: 
     return { error: "Selected player is not in this match." };
   }
 
-  await matchStore.updateParticipants(matchId, { teamOneParticipantIds, teamTwoParticipantIds });
+  const updated = await matchStore.updateParticipants(matchId, { teamOneParticipantIds, teamTwoParticipantIds }, match.updatedAt);
+  if (!updated) return { error: "Another admin updated this match at the same time. Please refresh and try again." };
   
   const eventStore = await import("@/features/events/drizzle-event-store").then(m => m.createDrizzleEventStore());
   const event = await eventStore.getEvent(eventId);

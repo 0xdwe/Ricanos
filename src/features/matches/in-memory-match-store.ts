@@ -53,9 +53,10 @@ export function createInMemoryMatchStore(initialMatches: MatchRecord[] = [], ini
       matches.set(matchId, updated);
       return updated;
     },
-    async updateParticipants(matchId: string, input: ParticipantUpdateInput) {
+    async updateParticipants(matchId: string, input: ParticipantUpdateInput, expectedUpdatedAt?: Date) {
       const existing = matches.get(matchId);
       if (!existing) return null;
+      if (expectedUpdatedAt && existing.updatedAt.getTime() !== expectedUpdatedAt.getTime()) return null;
       const updated = { ...existing, ...input, updatedAt: new Date("2026-01-01T00:00:00.000Z") };
       matches.set(matchId, updated);
       return updated;

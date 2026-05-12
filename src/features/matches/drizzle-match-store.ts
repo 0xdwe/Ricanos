@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { createDb } from "@/lib/db";
 import { matches, rounds } from "@/lib/db/schema";
 import type { MatchRecord } from "./match-model";
@@ -55,8 +55,9 @@ export function createDrizzleMatchStore(db: Db = createDb()): MatchStore {
       const [row] = await db.update(matches).set({ ...input, updatedAt: new Date() }).where(eq(matches.id, id)).returning();
       return row ? mapMatch(row) : null;
     },
-    async updateParticipants(id: string, input: ParticipantUpdateInput) {
-      const [row] = await db.update(matches).set({ ...input, updatedAt: new Date() }).where(eq(matches.id, id)).returning();
+    async updateParticipants(id: string, input: ParticipantUpdateInput, expectedUpdatedAt?: Date) {
+      const condition = expectedUpdatedAt ? and(eq(matches.id, id), eq(matches.updatedAt, expectedUpdatedAt)) : eq(matches.id, id);
+      const [row] = await db.update(matches).set({ ...input, updatedAt: new Date() }).where(condition).returning();
       return row ? mapMatch(row) : null;
     },
   };
