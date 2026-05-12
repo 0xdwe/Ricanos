@@ -16,6 +16,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
+    "date-fns": "^4.1.0",
     "drizzle-orm": "latest",
     "lucide-react": "latest",
     "next": "latest",
