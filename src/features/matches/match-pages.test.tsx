@@ -15,6 +15,9 @@ describe("score entry page", () => {
     expect(screen.getByText("Status")).toBeInTheDocument();
     expect(screen.getByText("Override target total after confirmation")).toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Mexicano score correction" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save match update" })).toHaveAttribute("type", "submit");
+    const saveButton = screen.getByRole("button", { name: "Save match update" });
+    expect(saveButton).toHaveAttribute("type", "submit");
+    expect(saveButton.closest("div")).toHaveClass("fixed");
+    expect(saveButton).toHaveClass("min-h-14");
   });
 });

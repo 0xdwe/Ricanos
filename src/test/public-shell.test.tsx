@@ -11,5 +11,14 @@ describe("PublicEventPage", () => {
     expect(screen.getByText("View-only public event")).toBeInTheDocument();
     expect(screen.getByText("Current and upcoming matches")).toBeInTheDocument();
     expect(screen.getByText("Public slug: demo")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Refresh" })).toHaveClass("min-h-11");
+    expect(screen.getByRole("link", { name: "Refresh scores" })).toHaveClass("fixed");
+  });
+
+  it("accepts repeated player search params without crashing", async () => {
+    const ui = await PublicEventPage({ params: Promise.resolve({ slug: "demo" }), searchParams: Promise.resolve({ player: ["Ana", "Bo"] }) });
+    render(ui);
+
+    expect(screen.getByRole("heading", { name: "Leaderboard" })).toBeInTheDocument();
   });
 });
