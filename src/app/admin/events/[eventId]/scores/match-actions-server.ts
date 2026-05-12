@@ -78,6 +78,8 @@ export async function saveMatchUpdate(prevState: any, formData: FormData) {
   }
 }
 
-export async function replaceParticipant(eventId: string, formData: FormData) {
+export async function replaceParticipant(eventId: string, participantId: string) {
+  const formData = new FormData();
+  formData.set("participantId", participantId);
   await replaceMatchParticipantFormAction(eventId, formData);
 }

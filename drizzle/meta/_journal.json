@@ -15,6 +15,13 @@
       "when": 1778518260826,
       "tag": "0001_audit_log",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778610788749,
+      "tag": "0002_blushing_frank_castle",
+      "breakpoints": true
     }
   ]
 }

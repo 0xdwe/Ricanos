@@ -68,9 +68,7 @@ export function MatchCard({
             {[...match.teamOneParticipantIds, ...match.teamTwoParticipantIds].map((participantId) => (
               <button
                 key={participantId}
-                formAction={replaceParticipantAction}
-                name="participantId"
-                value={participantId}
+                formAction={replaceParticipantAction.bind(null, participantId)}
                 className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-left font-medium text-amber-950 hover:bg-amber-100"
                 type="submit"
               >
