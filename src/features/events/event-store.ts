@@ -32,4 +32,5 @@ export type EventStore = {
   getEventBySlug(slug: string): Promise<EventRecord | null>;
   updateEvent(id: string, input: UpdateEventInput): Promise<EventRecord | null>;
   updateStatus(id: string, status: EventStatus): Promise<EventRecord | null>;
+  deleteEvent(id: string): Promise<boolean>;
 };

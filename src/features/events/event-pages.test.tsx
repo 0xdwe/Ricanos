@@ -33,6 +33,7 @@ describe("admin event pages", () => {
     const ui = await EventDetailPage({ params: Promise.resolve({ eventId: "event_1" }) });
     render(ui);
     expect(screen.getByRole("heading", { name: "Friday Americano" })).toBeInTheDocument();
-    expect(screen.getByText("Event Configuration")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Edit event" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Delete event" })).toBeInTheDocument();
   });
 });

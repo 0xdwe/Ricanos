@@ -1,8 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
-import { createEventAction } from "@/features/events/event-actions";
+import { createEventAction, updateEventAction } from "@/features/events/event-actions";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -18,8 +19,8 @@ const formSchema = z.object({
   roundCount: z.coerce.number().min(1, "Round count must be positive"),
 });
 
-export async function createEventFromForm(prevState: any, formData: FormData) {
-  const data = {
+function parseEventForm(formData: FormData) {
+  return formSchema.safeParse({
     name: formData.get("name")?.toString() || "",
     description: formData.get("description")?.toString() || null,
     eventDate: formData.get("eventDate")?.toString() || null,
@@ -30,9 +31,11 @@ export async function createEventFromForm(prevState: any, formData: FormData) {
     courtCount: formData.get("courtCount")?.toString(),
     scoreTarget: formData.get("scoreTarget")?.toString(),
     roundCount: formData.get("roundCount")?.toString(),
-  };
+  });
+}
 
-  const parsed = formSchema.safeParse(data);
+export async function createEventFromForm(prevState: any, formData: FormData) {
+  const parsed = parseEventForm(formData);
   
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message };
@@ -46,4 +49,24 @@ export async function createEventFromForm(prevState: any, formData: FormData) {
   }
 
   redirect(`/admin/events/${result.event.id}`);
+}
+
+export async function updateEventFromForm(eventId: string, prevState: any, formData: FormData) {
+  const parsed = parseEventForm(formData);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const store = createDrizzleEventStore();
+  const result = await updateEventAction(store, eventId, parsed.data);
+  if (!result.ok) return { error: result.errors[0].message };
+
+  revalidatePath("/admin");
+  revalidatePath(`/admin/events/${eventId}`);
+  return { success: true };
+}
+
+export async function deleteEventFromForm(eventId: string) {
+  const store = createDrizzleEventStore();
+  await store.deleteEvent(eventId);
+  revalidatePath("/admin");
+  redirect("/admin");
 }

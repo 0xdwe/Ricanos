@@ -56,5 +56,8 @@ export function createInMemoryEventStore(initialEvents: EventRecord[] = []): Eve
       events.set(idValue, updated);
       return updated;
     },
+    async deleteEvent(idValue: string) {
+      return events.delete(idValue);
+    },
   };
 }

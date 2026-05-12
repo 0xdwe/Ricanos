@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
+import { EditEventForm } from "@/features/events/edit-event-form";
 import { EventStatusForm } from "@/features/events/event-status-form";
 import { notFound } from "next/navigation";
 
@@ -67,29 +68,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             </Link>
           </div>
 
-          <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Event Configuration</h2>
-            </div>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-4 text-sm">
-              <div>
-                <dt className="text-slate-500 font-medium">Courts</dt>
-                <dd className="font-semibold">{event.courtCount}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500 font-medium">Score Target</dt>
-                <dd className="font-semibold">{event.scoreTarget}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500 font-medium">Total Rounds</dt>
-                <dd className="font-semibold">{event.roundCount}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500 font-medium">Public Slug</dt>
-                <dd className="font-mono text-xs">{event.publicSlug}</dd>
-              </div>
-            </dl>
-          </section>
+          <EditEventForm event={event} />
         </div>
 
         <div className="space-y-6">

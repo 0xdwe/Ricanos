@@ -67,5 +67,9 @@ export function createDrizzleEventStore(db: Db = createDb()): EventStore {
       const [row] = await db.update(events).set({ status, updatedAt: new Date() }).where(eq(events.id, id)).returning();
       return row ? withCourts(row) : null;
     },
+    async deleteEvent(id: string) {
+      const deleted = await db.delete(events).where(eq(events.id, id)).returning({ id: events.id });
+      return deleted.length > 0;
+    },
   };
 }
