@@ -30,7 +30,8 @@ describe("leaderboard pages", () => {
     render(ui);
     expect(screen.getByRole("heading", { name: "Leaderboard" })).toBeInTheDocument();
     expect(screen.getByText("Event: Friday Americano")).toBeInTheDocument();
-    expect(screen.getByText("Avg points")).toBeInTheDocument();
+    expect(screen.getByText("Win / Loss")).toBeInTheDocument();
+    expect(screen.getByText("Total points")).toBeInTheDocument();
     expect(screen.getByText("Played")).toBeInTheDocument();
   });
 });

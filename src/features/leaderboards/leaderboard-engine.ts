@@ -79,10 +79,11 @@ export function calculateLeaderboard({ participants, matches }: { participants: 
       winRate: standing.played === 0 ? 0 : roundMetric(standing.wins / standing.played),
     }))
     .sort((a, b) =>
-      b.averagePoints - a.averagePoints ||
-      b.averagePointDifference - a.averagePointDifference ||
-      b.winRate - a.winRate ||
+      b.wins - a.wins ||
       b.totalPoints - a.totalPoints ||
+      b.pointDifference - a.pointDifference ||
+      b.winRate - a.winRate ||
+      a.losses - b.losses ||
       a.displayName.localeCompare(b.displayName),
     )
     .map((standing, index) => ({ ...standing, rank: index + 1 }));

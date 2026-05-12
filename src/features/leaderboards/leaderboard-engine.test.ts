@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { calculateLeaderboard } from "./leaderboard-engine";
 
 describe("calculateLeaderboard", () => {
-  it("ranks by average points, average point difference, win rate, total points, then name", () => {
+  it("ranks by wins first, then total points, point difference, win rate, and name", () => {
     const standings = calculateLeaderboard({
       participants: [
         { id: "p1", displayName: "Alice" },
@@ -10,13 +10,29 @@ describe("calculateLeaderboard", () => {
         { id: "p3", displayName: "Charlie" },
       ],
       matches: [
-        { status: "completed", teamOneParticipantIds: ["p1"], teamTwoParticipantIds: ["p2"], teamOneScore: 14, teamTwoScore: 10 },
-        { status: "completed", teamOneParticipantIds: ["p2"], teamTwoParticipantIds: ["p3"], teamOneScore: 12, teamTwoScore: 12 },
+        { status: "completed", teamOneParticipantIds: ["p1"], teamTwoParticipantIds: ["p2"], teamOneScore: 11, teamTwoScore: 10 },
+        { status: "completed", teamOneParticipantIds: ["p2"], teamTwoParticipantIds: ["p3"], teamOneScore: 30, teamTwoScore: 29 },
+        { status: "completed", teamOneParticipantIds: ["p1"], teamTwoParticipantIds: ["p3"], teamOneScore: 12, teamTwoScore: 8 },
       ],
     });
 
-    expect(standings.map((standing) => standing.participantId)).toEqual(["p1", "p3", "p2"]);
-    expect(standings[0]).toMatchObject({ participantId: "p1", played: 1, totalPoints: 14, pointDifference: 4, wins: 1, averagePoints: 14, averagePointDifference: 4, winRate: 1 });
+    expect(standings.map((standing) => standing.participantId)).toEqual(["p1", "p2", "p3"]);
+    expect(standings[0]).toMatchObject({ participantId: "p1", played: 2, totalPoints: 23, pointDifference: 5, wins: 2, losses: 0, averagePoints: 11.5, averagePointDifference: 2.5, winRate: 1 });
+  });
+
+  it("uses points as the next priority when wins are tied", () => {
+    const standings = calculateLeaderboard({
+      participants: [
+        { id: "p1", displayName: "Alice" },
+        { id: "p2", displayName: "Bob" },
+      ],
+      matches: [
+        { status: "completed", teamOneParticipantIds: ["p1"], teamTwoParticipantIds: ["x1"], teamOneScore: 15, teamTwoScore: 10 },
+        { status: "completed", teamOneParticipantIds: ["p2"], teamTwoParticipantIds: ["x2"], teamOneScore: 20, teamTwoScore: 18 },
+      ],
+    });
+
+    expect(standings.map((standing) => standing.participantId)).toEqual(["p2", "p1"]);
   });
 
   it("ignores scheduled matches and abandoned matches that should not count", () => {
