@@ -92,3 +92,25 @@ export async function transitionMatchStatusAction(store: MatchStore, matchId: st
 
   return { ok: true, match: saved };
 }
+
+export async function deleteMatchAction(store: MatchStore, matchId: string, audit: AuditContext = {}): Promise<{ ok: true } | { ok: false; errors: { field: string; message: string }[] }> {
+  const existing = await store.getMatch(matchId);
+  if (!existing) return { ok: false, errors: [{ field: "matchId", message: "Match not found" }] };
+
+  if (existing.status === "completed") {
+    return { ok: false, errors: [{ field: "status", message: "Cannot delete a completed match. Change status to scheduled first." }] };
+  }
+
+  await store.deleteMatch(matchId);
+
+  await recordAuditEntry(audit.store, {
+    actionType: "match_deleted",
+    actorId: audit.actorId ?? null,
+    eventId: existing.eventId,
+    entityKind: "match",
+    entityId: matchId,
+    summary: `Deleted match from round ${existing.roundNumber}, court ${existing.courtNumber}`,
+  });
+
+  return { ok: true };
+}

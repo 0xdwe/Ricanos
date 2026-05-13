@@ -58,5 +58,8 @@ export function createDrizzleMatchStore(db: Db = createDb()): MatchStore {
       const [row] = await db.update(matches).set({ ...input, updatedAt: new Date() }).where(condition).returning();
       return row ? mapMatch(row) : null;
     },
+    async deleteMatch(id: string) {
+      await db.delete(matches).where(eq(matches.id, id));
+    },
   };
 }

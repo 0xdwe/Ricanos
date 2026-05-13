@@ -30,4 +30,5 @@ export type MatchStore = {
   updateScore(id: string, input: ScoreUpdateInput): Promise<MatchRecord | null>;
   updateStatus(id: string, input: StatusUpdateInput): Promise<MatchRecord | null>;
   updateParticipants(id: string, input: ParticipantUpdateInput, expectedUpdatedAt?: Date): Promise<MatchRecord | null>;
+  deleteMatch(id: string): Promise<void>;
 };

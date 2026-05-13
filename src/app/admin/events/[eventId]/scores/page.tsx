@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache";
 import { loadEventReadModel } from "@/features/events/event-read-model";
 import { generateSingleMatchAction } from "@/features/schedules/schedule-form-actions";
 import { MatchCard } from "./match-card";
-import { replaceParticipant } from "./match-actions-server";
+import { replaceParticipant, deleteMatch } from "./match-actions-server";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +16,12 @@ export default async function EventScoresPage({ params }: EventScoresPageProps) 
   const { event, matches, nameById } = readModel;
   const isMexicano = event.format === "mexicano";
   const replaceParticipantAction = replaceParticipant.bind(null, eventId);
+  const deleteMatchAction = async (formData: FormData) => {
+    "use server";
+    const matchId = formData.get("matchId")?.toString();
+    if (!matchId) return;
+    await deleteMatch(eventId, matchId);
+  };
   const nameByIdMap = Object.fromEntries(nameById);
 
   return (
@@ -60,6 +66,7 @@ export default async function EventScoresPage({ params }: EventScoresPageProps) 
               nameByIdMap={nameByIdMap}
               isMexicano={isMexicano}
               replaceParticipantAction={replaceParticipantAction}
+              deleteMatchAction={deleteMatchAction}
             />
           ))}
         </section>

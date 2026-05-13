@@ -9,12 +9,14 @@ export function MatchCard({
   nameByIdMap,
   isMexicano,
   replaceParticipantAction,
+  deleteMatchAction,
 }: {
   match: any;
   eventId: string;
   nameByIdMap: Record<string, string>;
   isMexicano: boolean;
   replaceParticipantAction: any;
+  deleteMatchAction: any;
 }) {
   const [state, formAction, isPending] = useActionState(saveMatchUpdate, null);
 
@@ -35,6 +37,15 @@ export function MatchCard({
         <div className="flex items-center gap-3">
           {state?.error && <span className="text-sm font-semibold text-red-600 max-w-xs">{state.error}</span>}
           {state?.success && <span className="text-sm font-semibold text-green-600">Saved</span>}
+          {match.status !== "completed" && (
+            <button
+              formAction={deleteMatchAction}
+              className="rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
+              type="submit"
+            >
+              Delete
+            </button>
+          )}
           <button disabled={isPending} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50" type="submit">
             {isPending ? "Saving..." : "Save score"}
           </button>

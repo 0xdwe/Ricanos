@@ -60,5 +60,8 @@ export function createInMemoryMatchStore(initialMatches: MatchRecord[] = [], ini
       matches.set(matchId, updated);
       return updated;
     },
+    async deleteMatch(matchId: string) {
+      matches.delete(matchId);
+    },
   };
 }

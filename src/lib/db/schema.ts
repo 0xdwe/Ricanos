@@ -8,6 +8,7 @@ export const auditActionType = pgEnum("audit_action_type", [
   "score_updated",
   "match_status_updated",
   "match_players_swapped",
+  "match_deleted",
   "schedule_generated",
   "schedule_regenerated",
   "event_completed",

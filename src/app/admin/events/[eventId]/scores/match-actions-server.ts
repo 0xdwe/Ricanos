@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createDrizzleAuditLogStore } from "@/features/audit/drizzle-audit-log-store";
+import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
 import { loadEventReadModel } from "@/features/events/event-read-model";
-import { correctMexicanoPastScoreAction, scoreMatchAction, transitionMatchStatusAction } from "@/features/matches/match-actions";
+import { correctMexicanoPastScoreAction, scoreMatchAction, transitionMatchStatusAction, deleteMatchAction } from "@/features/matches/match-actions";
 import type { MexicanoScoreCorrectionChoice } from "@/features/schedules/mexicano-score-correction";
 import type { MatchStatus } from "@/features/matches/match-model";
 import { createDrizzleMatchStore } from "@/features/matches/drizzle-match-store";
@@ -82,4 +83,28 @@ export async function replaceParticipant(eventId: string, participantId: string)
   const formData = new FormData();
   formData.set("participantId", participantId);
   await replaceMatchParticipantFormAction(eventId, formData);
+}
+
+export async function deleteMatch(eventId: string, matchId: string) {
+  try {
+    const matchStore = createDrizzleMatchStore();
+    const auditStore = createDrizzleAuditLogStore();
+    
+    const result = await deleteMatchAction(matchStore, matchId, { store: auditStore, actorId: null });
+    
+    if (!result.ok) {
+      return { error: result.errors[0].message };
+    }
+    
+    const eventStore = createDrizzleEventStore();
+    const event = await eventStore.getEvent(eventId);
+    
+    revalidatePath(`/admin/events/${eventId}/scores`);
+    revalidatePath(`/admin/events/${eventId}/leaderboard`);
+    if (event?.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
+    
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to delete match" };
+  }
 }

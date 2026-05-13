@@ -1,0 +1,1 @@
+ALTER TYPE "public"."audit_action_type" ADD VALUE 'match_deleted' BEFORE 'schedule_generated';
