@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { loadEventReadModel } from "@/features/events/event-read-model";
-import { calculateLeaderboard } from "@/features/leaderboards/leaderboard-engine";
-import { buildLeaderboardMatches } from "@/features/matches/match-model";
+import { loadEventReadModelWithStandings } from "@/features/events/event-read-model";
 import { notFound } from "next/navigation";
 
 type EventLeaderboardPageProps = { 
@@ -14,15 +12,10 @@ export default async function EventLeaderboardPage({ params, searchParams }: Eve
   const { sort } = (await searchParams) ?? {};
   const sortBy = sort === "points" ? "points" : "wins";
   
-  const readModel = await loadEventReadModel(eventId);
+  const readModel = await loadEventReadModelWithStandings(eventId, sortBy);
   if (!readModel) notFound();
 
-  const { event, participants } = readModel;
-  const standings = calculateLeaderboard({ 
-    participants, 
-    matches: buildLeaderboardMatches(readModel.matches),
-    sortBy 
-  });
+  const { event, standings, participants } = readModel;
 
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 px-6 py-10">

@@ -2,6 +2,8 @@ import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
 import { createDrizzleMatchStore } from "@/features/matches/drizzle-match-store";
 import { createDrizzlePlayerStore } from "@/features/players/drizzle-player-store";
 import { createDrizzleTeamStore } from "@/features/teams/drizzle-team-store";
+import { calculateLeaderboard, type Standing } from "@/features/leaderboards/leaderboard-engine";
+import { buildLeaderboardMatches } from "@/features/matches/match-model";
 import { createDb } from "@/lib/db";
 import type { EventRecord } from "./event-store";
 import type { PlayerRecord } from "@/features/players/player-store";
@@ -23,6 +25,11 @@ export type EventReadModel = {
   participants: Participant[];
   playerById: Map<string, PlayerRecord>;
   nameById: Map<string, string>;
+};
+
+export type EventReadModelWithStandings = EventReadModel & {
+  standings: Standing[];
+  sortBy: "wins" | "points";
 };
 
 /**
@@ -86,4 +93,51 @@ export async function loadEventReadModelBySlug(slug: string): Promise<EventReadM
   if (!event) return null;
 
   return loadEventReadModel(event.id);
+}
+
+/**
+ * Load event read model with leaderboard standings.
+ * Deepened interface: callers get complete dashboard data (event + matches + standings) behind one call.
+ */
+export async function loadEventReadModelWithStandings(
+  eventId: string,
+  sortBy: "wins" | "points" = "wins"
+): Promise<EventReadModelWithStandings | null> {
+  const readModel = await loadEventReadModel(eventId);
+  if (!readModel) return null;
+
+  const standings = calculateLeaderboard({
+    participants: readModel.participants,
+    matches: buildLeaderboardMatches(readModel.matches),
+    sortBy,
+  });
+
+  return {
+    ...readModel,
+    standings,
+    sortBy,
+  };
+}
+
+/**
+ * Load event read model with standings by public slug.
+ */
+export async function loadEventReadModelWithStandingsBySlug(
+  slug: string,
+  sortBy: "wins" | "points" = "wins"
+): Promise<EventReadModelWithStandings | null> {
+  const readModel = await loadEventReadModelBySlug(slug);
+  if (!readModel) return null;
+
+  const standings = calculateLeaderboard({
+    participants: readModel.participants,
+    matches: buildLeaderboardMatches(readModel.matches),
+    sortBy,
+  });
+
+  return {
+    ...readModel,
+    standings,
+    sortBy,
+  };
 }
