@@ -1,7 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
+import { revalidateSchedulePaths } from "@/features/events/event-revalidation";
 import { createDrizzleMatchStore } from "@/features/matches/drizzle-match-store";
 import { createDrizzlePlayerStore } from "@/features/players/drizzle-player-store";
 import { createDrizzleAuditLogStore } from "@/features/audit/drizzle-audit-log-store";
@@ -105,10 +105,7 @@ export async function generateScheduleFormAction(eventId: string, prevState: any
         summary: `Generated ${countMatches(schedule)} more matches`,
       });
 
-      revalidatePath(`/admin/events/${eventId}/schedule/americano`);
-      revalidatePath(`/admin/events/${eventId}/scores`);
-      revalidatePath(`/admin/events/${eventId}/leaderboard`);
-      if (event.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
+      revalidateSchedulePaths(eventId, event);
       return { saved: true, success: true, matchCount: countMatches(schedule) };
     }
 
@@ -203,9 +200,7 @@ export async function generateSingleMatchAction(eventId: string) {
       summary: `Generated ${createdCount} new match${createdCount === 1 ? "" : "es"}`,
     });
 
-    revalidatePath(`/admin/events/${eventId}/scores`);
-    revalidatePath(`/admin/events/${eventId}/leaderboard`);
-    if (event.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
+    revalidateSchedulePaths(eventId, event);
     return { success: true };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to generate match" };

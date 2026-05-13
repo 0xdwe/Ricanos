@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createDrizzleTeamStore } from "./drizzle-team-store";
 
+// Note: Team changes only affect teams/players pages until matches are generated
+
 function parsePairLine(line: string) {
   const parts = line.split(/\s*(?:\/|,|\+|&| and )\s*/i).map((part) => part.trim()).filter(Boolean);
   if (parts.length !== 2) return null;

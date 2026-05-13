@@ -1,9 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createDrizzleAuditLogStore } from "@/features/audit/drizzle-audit-log-store";
 import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
 import { loadEventReadModel } from "@/features/events/event-read-model";
+import { revalidateScorePaths } from "@/features/events/event-revalidation";
 import { correctMexicanoPastScoreAction, scoreMatchAction, transitionMatchStatusAction, deleteMatchAction } from "@/features/matches/match-actions";
 import type { MexicanoScoreCorrectionChoice } from "@/features/schedules/mexicano-score-correction";
 import type { MatchStatus } from "@/features/matches/match-model";
@@ -68,9 +68,9 @@ export async function saveMatchUpdate(prevState: any, formData: FormData) {
     }
 
     if (eventId) {
-      revalidatePath(`/admin/events/${eventId}/scores`);
-      revalidatePath(`/admin/events/${eventId}/leaderboard`);
-      if (event?.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
+      const eventStore = createDrizzleEventStore();
+      const event = await eventStore.getEvent(eventId);
+      revalidateScorePaths(eventId, event);
     }
     
     return { success: true };
@@ -99,9 +99,7 @@ export async function deleteMatch(eventId: string, matchId: string) {
     const eventStore = createDrizzleEventStore();
     const event = await eventStore.getEvent(eventId);
     
-    revalidatePath(`/admin/events/${eventId}/scores`);
-    revalidatePath(`/admin/events/${eventId}/leaderboard`);
-    if (event?.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
+    revalidateScorePaths(eventId, event);
     
     return { success: true };
   } catch (error) {

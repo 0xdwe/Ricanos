@@ -1,8 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createDrizzleMatchStore } from "./drizzle-match-store";
 import { createDrizzlePlayerStore } from "@/features/players/drizzle-player-store";
+import { revalidateScorePaths } from "@/features/events/event-revalidation";
 
 export async function replaceMatchParticipantForTest(eventId: string, formData: FormData) {
   const matchId = String(formData.get("matchId") ?? "");
@@ -33,9 +33,7 @@ export async function replaceMatchParticipantForTest(eventId: string, formData: 
   const eventStore = await import("@/features/events/drizzle-event-store").then(m => m.createDrizzleEventStore());
   const event = await eventStore.getEvent(eventId);
   
-  revalidatePath(`/admin/events/${eventId}/scores`);
-  revalidatePath(`/admin/events/${eventId}/leaderboard`);
-  if (event?.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
+  revalidateScorePaths(eventId, event);
   return { success: true, replacementId: replacement };
 }
 

@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { createDrizzlePlayerStore } from "@/features/players/drizzle-player-store";
 import { addPlayerToRosterAction, importPlayersAction } from "@/features/players/player-actions";
 
+// Note: Player roster changes don't need full event revalidation since they only affect the players page
+// and don't impact scores, leaderboard, or public dashboard until matches are generated
+
 export async function addPlayerToRosterFormAction(eventId: string, prevState: any, formData: FormData) {
   const playerId = formData.get("playerId")?.toString();
   if (!playerId) {

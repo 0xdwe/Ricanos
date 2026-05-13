@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createDrizzleEventStore } from "@/features/events/drizzle-event-store";
 import { createEventAction, updateEventAction } from "@/features/events/event-actions";
+import { revalidateEventPaths } from "@/features/events/event-revalidation";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -59,8 +60,7 @@ export async function updateEventFromForm(eventId: string, prevState: any, formD
   if (!result.ok) return { error: result.errors[0].message };
 
   revalidatePath("/admin");
-  revalidatePath(`/admin/events/${eventId}`);
-  if (event?.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
+  revalidateEventPaths(eventId, event);
   return { success: true };
 }
 
@@ -69,6 +69,6 @@ export async function deleteEventFromForm(eventId: string) {
   const event = await store.getEvent(eventId);
   await store.deleteEvent(eventId);
   revalidatePath("/admin");
-  if (event?.publicSlug) revalidatePath(`/events/${event.publicSlug}`);
+  revalidateEventPaths(eventId, event);
   redirect("/admin");
 }
